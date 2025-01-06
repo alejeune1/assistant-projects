@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulaire de Saisie - Bon d'Intervention</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Saisie d'un bon d'intervention</h1>
+    </header>
+
+    <main>
+      <form id="form-cr">
+        <label for="date">Date :</label>
+        <input type="date" id="date" required />
+
+        <label for="chantier">Nom du Chantier :</label>
+        <input type="text" id="chantier" required />
+
+        <label for="centrale">Nom de la Centrale :</label>
+        <input type="text" id="centrale" required />
+
+        <label for="entreprise">Nom de l'Entreprise :</label>
+        <input type="text" id="entreprise" required />
+
+        <label for="lieu">Lieu d'intervention :</label>
+        <input type="text" id="lieu" required />
+
+        <label for="description">Description des Travaux Effectués :</label>
+        <textarea id="description" rows="4" required></textarea>
+
+        <h3>Désignations des Pièces Fournies</h3>
+        <table id="pieces-table">
+          <tr>
+            <th>Fabricant</th>
+            <th>Désignation</th>
+            <th>Quantité</th>
+          </tr>
+          <tr>
+            <td><input type="text" name="fabricant[]" /></td>
+            <td><input type="text" name="designation[]" /></td>
+            <td><input type="number" name="quantite[]" /></td>
+          </tr>
+        </table>
+
+        <h3>Temps d'Intervention</h3>
+        <table id="intervention-table">
+          <tr>
+            <th>Noms Techniciens</th>
+            <th>Date d'Intervention</th>
+            <th>Horaires</th>
+            <th>Nombre d'Heures</th>
+          </tr>
+          <tr>
+            <td><input type="text" name="techniciens[]" /></td>
+            <td><input type="date" name="date_intervention[]" /></td>
+            <td><input type="text" name="horaires[]" /></td>
+            <td><input type="number" name="nbr_heures[]" /></td>
+          </tr>
+        </table>
+
+        <label for="photos">Photos de l'intervention :</label>
+        <input
+          type="file"
+          id="photos"
+          class="photo-upload"
+          multiple
+          accept="image/*"
+        />
+        <div id="photo-preview"></div>
+
+        <h3>Signatures</h3>
+        <label for="representant"
+          >Signature du Représentant de l'Entreprise (Nom/Prénom) :</label
+        >
+        <input type="text" id="representant" required />
+
+        <label for="agent">Signature Agent EDF (Nom/Prénom) :</label>
+        <input type="text" id="agent" required />
+
+        <h3>Signature du Représentant :</h3>
+        <canvas
+          id="signature-representant-canvas"
+          width="300"
+          height="150"
+          style="border: 1px solid #000"
+        ></canvas>
+        <button type="button" id="clear-representant">Effacer</button>
+
+        <h3>Signature de l'Agent EDF :</h3>
+        <canvas
+          id="signature-agent-canvas"
+          width="300"
+          height="150"
+          style="border: 1px solid #000"
+        ></canvas>
+        <button type="button" id="clear-agent">Effacer</button>
+
+        <label for="commentaires">Commentaires :</label>
+        <textarea id="commentaires" rows="4"></textarea>
+
+        <button type="submit">Générer le PDF</button>
+      </form>
+    </main>
+
+    <footer>
+      <p>EDF SEI - Bon d'Intervention</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
