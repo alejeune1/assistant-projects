@@ -1,23 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Document chargé");
+
   const generatePDFBtn = document.getElementById("generatePDF");
   const form = document.getElementById("pvForm");
 
   // Activer/Désactiver le bouton PDF
   form.addEventListener("input", () => {
+    console.log("Validation des champs...");
     const isValid = Array.from(form.elements).every((el) => {
       if (el.type === "file" || el.id === "summary") return true; // Champs optionnels
       return el.value.trim() !== "";
     });
+    console.log("Formulaire valide :", isValid);
     generatePDFBtn.disabled = !isValid;
   });
 
   // Fonction de génération du PDF
   generatePDFBtn.addEventListener("click", async () => {
+    console.log("Bouton 'Générer PDF' cliqué");
+
     try {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF();
+      console.log("jsPDF initialisé");
 
-      // Récupération des champs du formulaire
+      // Récupération des champs
       const title = document.getElementById("title").value;
       const responsable = document.getElementById("responsable").value;
       const entreprise = document.getElementById("entreprise").value;
@@ -27,14 +34,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const summary =
         document.getElementById("summary").value || "Aucun résumé fourni";
 
-      // Récupération des photos
-      const photosInput = document.getElementById("photos");
-      const photos = Array.from(photosInput.files);
+      console.log("Champs récupérés :", {
+        title,
+        responsable,
+        entreprise,
+        startDate,
+        endDate,
+        amount,
+        summary,
+      });
 
-      // Remplir le PDF
+      // Ajout au PDF
       pdf.setFontSize(16);
       pdf.text("PV de Mise en Service Technique", 105, 20, { align: "center" });
-
       pdf.setFontSize(12);
       let y = 30;
       pdf.text(`Titre : ${title}`, 20, y);
@@ -53,23 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
       y += 10;
       pdf.text(summary, 20, y);
 
-      // Ajouter les photos au PDF
-      y += 20;
-      for (const photo of photos) {
-        if (photo) {
-          const imgData = await toDataURL(photo);
-          pdf.addImage(imgData, "JPEG", 20, y, 60, 40);
-          y += 50;
+      console.log("Contenu PDF ajouté");
 
-          if (y > 270) {
-            pdf.addPage();
-            y = 20;
-          }
-        }
-      }
-
-      // Sauvegarder le PDF
+      // Sauvegarde du PDF
       pdf.save(`${title}.pdf`);
+      console.log("PDF généré avec succès !");
     } catch (error) {
       console.error("Erreur lors de la génération du PDF :", error);
       alert(
@@ -77,13 +77,4 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
   });
-
-  // Convertir une image en DataURL
-  function toDataURL(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(file);
-    });
-  }
 });
