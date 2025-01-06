@@ -52,18 +52,10 @@
           placeholder="Description des travaux..."
         ></textarea>
 
-        <div id="photosContainer">
-          <label>Photos :</label>
-          <input
-            type="file"
-            id="photo"
-            class="photo-upload"
-            accept="image/*"
-            multiple
-          />
-        </div>
+        <label for="photos">Photos : *</label>
+        <input type="file" id="photos" accept="image/*" multiple required />
 
-        <button type="button" id="generatePDF" disabled>Générer PDF</button>
+        <button type="button" id="generatePDF">Générer PDF</button>
       </form>
     </div>
     <script src="script.js"></script>
