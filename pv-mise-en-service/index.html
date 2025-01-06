@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PV Mise En Service Technique</title>
+    <title>PV Mise En Service</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="container">
-      <h1>PV de Mise en Service Technique</h1>
+      <h1>PV de Mise en Service</h1>
       <form id="pvForm">
-        <label for="title">Titre :</label>
+        <label for="title">Titre : *</label>
         <input
           type="text"
           id="title"
@@ -18,7 +18,7 @@
           required
         />
 
-        <label for="responsable">Responsable :</label>
+        <label for="responsable">Responsable : *</label>
         <input
           type="text"
           id="responsable"
@@ -26,7 +26,7 @@
           required
         />
 
-        <label for="entreprise">Entreprise :</label>
+        <label for="entreprise">Entreprise : *</label>
         <input
           type="text"
           id="entreprise"
@@ -34,13 +34,13 @@
           required
         />
 
-        <label for="startDate">Date début :</label>
+        <label for="startDate">Date début : *</label>
         <input type="date" id="startDate" required />
 
-        <label for="endDate">Date fin :</label>
+        <label for="endDate">Date fin : *</label>
         <input type="date" id="endDate" required />
 
-        <label for="amount">Montant (€) :</label>
+        <label for="amount">Montant (€) : *</label>
         <input type="number" id="amount" placeholder="Ex: 5850" required />
 
         <label for="summary">Résumé :</label>
@@ -48,19 +48,20 @@
           id="summary"
           rows="4"
           placeholder="Description des travaux..."
-          required
         ></textarea>
 
-        <label for="photoBefore">Photo avant :</label>
-        <input type="file" id="photoBefore" accept="image/*" required />
+        <label for="photo">Photo : *</label>
+        <input type="file" id="photo" accept="image/*" required />
+        <label for="photoLabel">Libellé de la photo :</label>
+        <input
+          type="text"
+          id="photoLabel"
+          placeholder="Ex: Photo du véhicule après travaux"
+        />
 
-        <label for="photoAfter">Photo après :</label>
-        <input type="file" id="photoAfter" accept="image/*" required />
-
-        <button type="button" id="generatePDF">Générer PDF</button>
+        <button type="button" id="generatePDF" disabled>Générer PDF</button>
       </form>
     </div>
-
     <script src="script.js"></script>
   </body>
 </html>
