@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PV Mise En Service</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -52,9 +54,14 @@
 
         <div id="photosContainer">
           <label>Photos :</label>
-          <!-- Conteneur dynamique pour les photos -->
+          <input
+            type="file"
+            id="photo"
+            class="photo-upload"
+            accept="image/*"
+            multiple
+          />
         </div>
-        <button type="button" id="addPhoto">Ajouter une photo</button>
 
         <button type="button" id="generatePDF" disabled>Générer PDF</button>
       </form>

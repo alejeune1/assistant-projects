@@ -1,98 +1,76 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("pvForm");
-  const photosContainer = document.getElementById("photosContainer");
-  const addPhotoBtn = document.getElementById("addPhoto");
   const generatePDFBtn = document.getElementById("generatePDF");
 
-  let photoCount = 0;
-
-  // Activer/Désactiver le bouton PDF en fonction de la validation du formulaire
+  // Activer/Désactiver le bouton en fonction des champs remplis
   form.addEventListener("input", () => {
-    const isFormValid = Array.from(form.elements).every((el) => {
-      if (
-        el.type === "file" ||
-        el.id === "summary" ||
-        el.className === "photo-label"
-      )
-        return true;
+    const isValid = Array.from(form.elements).every((el) => {
+      if (el.type === "file" || el.id === "summary") return true; // Champs facultatifs
       return el.value.trim() !== "";
     });
-
-    generatePDFBtn.disabled = !isFormValid;
+    generatePDFBtn.disabled = !isValid;
   });
 
-  // Ajouter un champ photo dynamique
-  addPhotoBtn.addEventListener("click", () => {
-    photoCount++;
-
-    const photoDiv = document.createElement("div");
-    photoDiv.className = "photo-group";
-    photoDiv.innerHTML = `
-          <label for="photo-${photoCount}">Photo ${photoCount} :</label>
-          <input type="file" id="photo-${photoCount}" class="photo-input" accept="image/*" required>
-          <label for="photoLabel-${photoCount}">Libellé :</label>
-          <input type="text" id="photoLabel-${photoCount}" class="photo-label" placeholder="Ex: Photo avant travaux">
-      `;
-    photosContainer.appendChild(photoDiv);
-  });
-
-  // Générer le PDF
+  // Génération du PDF
   generatePDFBtn.addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
+    // Récupérer les champs du formulaire
     const title = document.getElementById("title").value;
     const responsable = document.getElementById("responsable").value;
     const entreprise = document.getElementById("entreprise").value;
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
     const amount = document.getElementById("amount").value;
-    const summary = document.getElementById("summary").value;
+    const summary =
+      document.getElementById("summary").value || "Aucun résumé fourni";
+    const photoInput = document.getElementById("photo");
+    const photos = Array.from(photoInput.files);
 
+    // Remplir le PDF
     pdf.setFontSize(16);
-    pdf.text("PV Mise en Service Technique", 10, 10);
+    pdf.text("PV de Mise en Service Technique", 105, 20, { align: "center" });
 
     pdf.setFontSize(12);
-    pdf.text(`Titre : ${title}`, 10, 20);
-    pdf.text(`Responsable : ${responsable}`, 10, 30);
-    pdf.text(`Entreprise : ${entreprise}`, 10, 40);
-    pdf.text(`Date début : ${startDate}`, 10, 50);
-    pdf.text(`Date fin : ${endDate}`, 10, 60);
-    pdf.text(`Montant : ${amount} €`, 10, 70);
-    pdf.text("Résumé :", 10, 80);
-    pdf.text(summary || "Aucun résumé fourni", 10, 90);
+    let y = 30;
+    pdf.text(`Titre : ${title}`, 20, y);
+    y += 10;
+    pdf.text(`Responsable : ${responsable}`, 20, y);
+    y += 10;
+    pdf.text(`Entreprise : ${entreprise}`, 20, y);
+    y += 10;
+    pdf.text(`Date début : ${startDate}`, 20, y);
+    y += 10;
+    pdf.text(`Date fin : ${endDate}`, 20, y);
+    y += 10;
+    pdf.text(`Montant : ${amount} €`, 20, y);
+    y += 10;
+    pdf.text("Résumé :", 20, y);
+    y += 10;
+    pdf.text(summary, 20, y);
 
-    let yOffset = 100;
+    // Ajouter les photos au PDF
+    y += 20;
+    for (const photo of photos) {
+      if (photo) {
+        const imgData = await toDataURL(photo);
+        pdf.addImage(imgData, "JPEG", 20, y, 60, 40);
+        y += 50;
 
-    // Ajouter les photos et leurs libellés
-    const photoInputs = document.querySelectorAll(".photo-input");
-    const photoLabels = document.querySelectorAll(".photo-label");
-
-    for (let i = 0; i < photoInputs.length; i++) {
-      const photoFile = photoInputs[i].files[0];
-      const photoLabel = photoLabels[i].value;
-
-      if (photoFile) {
-        const photoData = await toDataURL(photoFile);
-        pdf.addImage(photoData, "JPEG", 10, yOffset, 60, 40);
-        pdf.text(
-          photoLabel || `Photo ${i + 1} (pas de libellé)`,
-          10,
-          yOffset + 45
-        );
-        yOffset += 60;
-
-        // Si on dépasse la page, ajouter une nouvelle page
-        if (yOffset > 270) {
+        // Ajouter une nouvelle page si nécessaire
+        if (y > 270) {
           pdf.addPage();
-          yOffset = 10;
+          y = 20;
         }
       }
     }
 
+    // Sauvegarder le PDF
     pdf.save(`${title}.pdf`);
   });
 
+  // Convertir une image en DataURL
   function toDataURL(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
