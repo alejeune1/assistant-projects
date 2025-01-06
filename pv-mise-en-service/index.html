@@ -50,14 +50,11 @@
           placeholder="Description des travaux..."
         ></textarea>
 
-        <label for="photo">Photo : *</label>
-        <input type="file" id="photo" accept="image/*" required />
-        <label for="photoLabel">Libellé de la photo :</label>
-        <input
-          type="text"
-          id="photoLabel"
-          placeholder="Ex: Photo du véhicule après travaux"
-        />
+        <div id="photosContainer">
+          <label>Photos :</label>
+          <!-- Conteneur dynamique pour les photos -->
+        </div>
+        <button type="button" id="addPhoto">Ajouter une photo</button>
 
         <button type="button" id="generatePDF" disabled>Générer PDF</button>
       </form>
