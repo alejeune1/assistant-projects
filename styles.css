@@ -16,7 +16,7 @@ body {
 
 header h1 {
   font-size: 2rem; /* Taille ajustée */
-  margin-bottom: 300px; /* Espacement avec les boutons */
+  margin-bottom: 30px; /* Espacement avec les boutons */
   color: #007bff;
 }
 
