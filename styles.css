@@ -7,7 +7,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Hauteur de la fenêtre pour centrer */
+  height: 100vh;
 }
 
 .container {
