@@ -120,10 +120,17 @@ document.addEventListener("DOMContentLoaded", () => {
       headStyles: { fillColor: [0, 51, 153] },
     });
 
-    // Espace en bas pour une autre photo ou capture d'écran
+    // Ajout du titre "Photos :" après les tableaux
+    y = pdf.lastAutoTable.finalY + 20;
+    pdf.setFontSize(14);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text("Photos :", 20, y);
+
+    // Afficher la première photo supplémentaire sous le titre "Photos :"
+    y += 10;
     if (photos.length > 2) {
       const imgData = await toDataURL(photos[2]);
-      pdf.addImage(imgData, "JPEG", 20, pdf.lastAutoTable.finalY + 20, 80, 60);
+      pdf.addImage(imgData, "JPEG", 20, y, 80, 60);
     }
 
     // ** Page 3 : Photos supplémentaires **
