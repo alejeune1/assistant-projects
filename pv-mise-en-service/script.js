@@ -8,14 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = 20; // Position verticale initiale
 
     // ** Page 1 : En-tête et sections descriptives **
-    pdf.addImage(
-      "C:UsersAntoninDocumentsGitHubassistant-projectsEDF.png",
-      "PNG",
-      10,
-      10,
-      30,
-      10
-    ); // Logo EDF
+    pdf.addImage("EDF.png", "PNG", 10, 10, 30, 10); // Logo EDF
     pdf.setFillColor(0, 51, 153); // Couleur bleue pour l'encadré
     pdf.rect(0, 20, 210, 15, "F");
     pdf.setTextColor(255, 255, 255);
@@ -76,14 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.addPage();
 
     // ** Page 2 : Infos commande **
-    pdf.addImage(
-      "C:UsersAntoninDocumentsGitHubassistant-projectsEDF.png",
-      "PNG",
-      10,
-      10,
-      30,
-      10
-    );
+    pdf.addImage("EDF.png", "PNG", 10, 10, 30, 10);
     pdf.setFontSize(14);
     pdf.setTextColor(0, 102, 0); // Vert
     pdf.text("Infos commande :", 20, 30);
@@ -127,14 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.addPage();
 
     // ** Page 3 : Photos supplémentaires **
-    pdf.addImage(
-      "C:UsersAntoninDocumentsGitHubassistant-projectsEDF.png",
-      "PNG",
-      10,
-      10,
-      30,
-      10
-    );
+    pdf.addImage("EDF.png", "PNG", 10, 10, 30, 10);
     let photoY = 30;
     for (let i = 2; i < photos.length; i++) {
       const imgData = await toDataURL(photos[i]);
