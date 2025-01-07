@@ -35,13 +35,15 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     pdf.text("Interlocuteurs : Frédéric MESCOFF", 20, 85);
 
-    // Historique
+    // Historique avec données réparties
     const historique =
-      document.getElementById("historique").value || "Aucun historique fourni";
+      document.getElementById("historique").value ||
+      "Version 1, 13/10/2023, Création";
+    const historiqueData = historique.split(",").map((item) => item.trim()); // Divise en colonnes
     pdf.autoTable({
       startY: 90,
       head: [["Version", "Date d'application", "Nature de la modification"]],
-      body: [[historique.split(",").map((item) => item.trim())]],
+      body: [historiqueData], // Les données sont réparties automatiquement
       theme: "grid",
       headStyles: { fillColor: [0, 51, 153] },
     });
