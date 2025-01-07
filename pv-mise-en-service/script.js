@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     y = pdf.lastAutoTable.finalY + 20;
     pdf.setFontSize(14);
     pdf.setTextColor(0, 102, 0);
-    pdf.text("Photos :", 20, y);
+    pdf.text("Photos :", 20, 30);
 
     // Afficher la première photo supplémentaire sous le titre "Photos :"
     y += 10;
