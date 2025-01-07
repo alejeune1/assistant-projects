@@ -8,8 +8,12 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("input", () => {
     console.log("Validation des champs...");
     const isValid = Array.from(form.elements).every((el) => {
+      // Vérification des champs obligatoires
       if (el.type === "file" || el.id === "summary") return true; // Champs optionnels
-      return el.value.trim() !== "";
+      if (el.required) {
+        return el.value.trim() !== ""; // Vérifie que le champ n'est pas vide
+      }
+      return true; // Les champs non requis passent toujours
     });
     console.log("Formulaire valide :", isValid);
     generatePDFBtn.disabled = !isValid;
@@ -34,19 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const summary =
         document.getElementById("summary").value || "Aucun résumé fourni";
 
-      console.log("Champs récupérés :", {
-        title,
-        responsable,
-        entreprise,
-        startDate,
-        endDate,
-        amount,
-        summary,
-      });
+      // Récupération des photos
+      const photosInput = document.getElementById("photos");
+      const photos = Array.from(photosInput.files);
 
-      // Ajout au PDF
+      // Remplir le PDF
       pdf.setFontSize(16);
       pdf.text("PV de Mise en Service Technique", 105, 20, { align: "center" });
+
       pdf.setFontSize(12);
       let y = 30;
       pdf.text(`Titre : ${title}`, 20, y);
@@ -65,9 +64,22 @@ document.addEventListener("DOMContentLoaded", () => {
       y += 10;
       pdf.text(summary, 20, y);
 
-      console.log("Contenu PDF ajouté");
+      // Ajouter les photos au PDF
+      y += 20;
+      for (const photo of photos) {
+        if (photo) {
+          const imgData = await toDataURL(photo);
+          pdf.addImage(imgData, "JPEG", 20, y, 60, 40);
+          y += 50;
 
-      // Sauvegarde du PDF
+          if (y > 270) {
+            pdf.addPage();
+            y = 20;
+          }
+        }
+      }
+
+      // Sauvegarder le PDF
       pdf.save(`${title}.pdf`);
       console.log("PDF généré avec succès !");
     } catch (error) {
@@ -77,4 +89,13 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
   });
+
+  // Convertir une image en DataURL
+  function toDataURL(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
+  }
 });
