@@ -5,45 +5,45 @@ document.addEventListener("DOMContentLoaded", () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
-    let y = 20; // Position verticale initiale
+    let y = 20;
 
     // ** Page 1 : En-tête et sections descriptives **
     pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF
-    pdf.setFillColor(0, 51, 153); // Couleur bleue pour l'encadré
-    pdf.rect(0, 20, 210, 15, "F");
+    pdf.setFillColor(0, 51, 153); // Couleur bleue pour la bannière
+    pdf.rect(0, 30, 210, 15, "F"); // Bannière décalée sous le logo
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(16);
-    pdf.text("PV Mise En Service Technique", 105, 30, { align: "center" });
+    pdf.text("PV Mise En Service Technique", 105, 40, { align: "center" });
 
     const title = document.getElementById("title").value;
     pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(12);
-    pdf.text(title, 20, 50);
+    pdf.text(title, 20, 55);
 
     pdf.setFontSize(10);
-    pdf.text("Note interne", 20, 60);
+    pdf.text("Note interne", 20, 65);
     pdf.text(
       "Document associé : Note SEI PTE 34 Guide d’utilisation de l’outil de valorisation pour immobilisation des remises gratuites d’ouvrages.",
       20,
-      65,
+      70,
       { maxWidth: 170 }
     );
     pdf.text(
       "Animation métier : Concession, Réseau et Patrimoine, Gestion Finances",
       20,
-      75
+      80
     );
-    pdf.text("Interlocuteurs : Frédéric MESCOFF", 20, 85);
+    pdf.text("Interlocuteurs : Frédéric MESCOFF", 20, 90);
 
     // Historique avec données réparties
     const historique =
       document.getElementById("historique").value ||
       "Version 1, 13/10/2023, Création";
-    const historiqueData = historique.split(",").map((item) => item.trim()); // Divise en colonnes
+    const historiqueData = historique.split(",").map((item) => item.trim());
     pdf.autoTable({
-      startY: 90,
+      startY: 100,
       head: [["Version", "Date d'application", "Nature de la modification"]],
-      body: [historiqueData], // Les données sont réparties automatiquement
+      body: [historiqueData],
       theme: "grid",
       headStyles: { fillColor: [0, 51, 153] },
     });
@@ -68,67 +68,48 @@ document.addEventListener("DOMContentLoaded", () => {
       headStyles: { fillColor: [0, 51, 153] },
     });
 
+    // ** Page 3 : Photos **
     pdf.addPage();
+    pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF
+    pdf.setFontSize(16);
+    pdf.text("Photos :", 20, 30);
 
-    // ** Page 2 : Infos commande **
-    pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15);
-    pdf.setFontSize(14);
-    pdf.setTextColor(0, 102, 0); // Vert
-    pdf.text("Infos commande :", 20, 30);
+    let x = 20;
+    y = 40;
+    const pageWidth = 190;
+    const maxHeight = 100;
+    const padding = 10;
 
-    // Photos en haut
     const photosInput = document.getElementById("photos");
     const photos = Array.from(photosInput.files);
 
-    let imageY = 40;
-    for (let i = 0; i < Math.min(2, photos.length); i++) {
-      const imgData = await toDataURL(photos[i]);
-      pdf.addImage(imgData, "JPEG", 20, imageY, 60, 40);
-      imageY += 50;
-    }
+    for (const photo of photos) {
+      const imgData = await toDataURL(photo);
 
-    // Tableau infos commande
-    const responsable = document.getElementById("responsable").value;
-    const entreprise = document.getElementById("entreprise").value;
-    const stockage = document.getElementById("stockage").value;
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
-    const amount = document.getElementById("amount").value;
-    const eotp = document.getElementById("eotp").value || "Non spécifié";
+      const img = new Image();
+      img.src = imgData;
 
-    pdf.autoTable({
-      startY: imageY + 10,
-      head: [["Responsable chantier", "Entreprise", "Lieu stockage dossier"]],
-      body: [[responsable, entreprise, stockage]],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
+      const ratio = img.width / img.height;
+      let displayWidth = Math.min(pageWidth - 2 * x, img.width);
+      let displayHeight = displayWidth / ratio;
 
-    pdf.autoTable({
-      startY: pdf.lastAutoTable.finalY + 10,
-      head: [["Début chantier", "Fin chantier", "Montant chantier", "EOTP"]],
-      body: [[startDate, endDate, `${amount}€`, eotp]],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
+      if (displayHeight > maxHeight) {
+        displayHeight = maxHeight;
+        displayWidth = displayHeight * ratio;
+      }
 
-    pdf.addPage();
+      pdf.addImage(imgData, "JPEG", x, y, displayWidth, displayHeight);
 
-    // ** Page 3 : Photos supplémentaires **
-    pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15);
-    let photoY = 30;
-    for (let i = 2; i < photos.length; i++) {
-      const imgData = await toDataURL(photos[i]);
-      pdf.addImage(imgData, "JPEG", 20, photoY, 60, 40);
-      photoY += 50;
+      y += displayHeight + padding;
 
-      if (photoY > 270) {
+      if (y + displayHeight + padding > 280) {
         pdf.addPage();
-        photoY = 30;
+        pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Nouveau logo pour la page
+        y = 40;
       }
     }
 
-    // Sauvegarde
+    // Sauvegarder le PDF
     pdf.save("pv_mise_en_service.pdf");
   });
 
