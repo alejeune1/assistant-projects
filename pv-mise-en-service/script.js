@@ -10,9 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // En-tête
     pdf.setFontSize(16);
     pdf.text("PV Mise En Service Technique", 105, y, { align: "center" });
-    y += 10;
-    pdf.setFontSize(14);
-    pdf.text("Achat Véhicule électrique SEIN", 105, y, { align: "center" });
     y += 20;
 
     // Informations EDF
@@ -25,36 +22,35 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.text("www.edf.com", 20, y + 25);
     y += 35;
 
-    // Note interne
-    pdf.setFontSize(12);
-    pdf.text("Note interne", 20, y);
-    y += 10;
-    pdf.setFontSize(10);
-    pdf.text(
-      "Document associé : Note SEI PTE 34 Guide d’utilisation de l’outil de valorisation pour immobilisation des remises gratuites d’ouvrages (VRG 2009) pour les centres SEI",
-      20,
-      y,
-      { maxWidth: 170 }
-    );
-    y += 20;
-    pdf.text(
-      "Animation métier : Concession, Réseau et Patrimoine, Gestion Finances",
-      20,
-      y
-    );
-    y += 10;
-    pdf.text("Interlocuteurs : Frédéric MESCOFF", 20, y);
-    y += 15;
+    // Note interne sous forme de tableau
+    pdf.autoTable({
+      startY: y,
+      head: [["Section", "Contenu"]],
+      body: [
+        [
+          "Document associé",
+          "Note SEI PTE 34 Guide d’utilisation de l’outil de valorisation pour immobilisation des remises gratuites d’ouvrages (VRG 2009) pour les centres SEI",
+        ],
+        [
+          "Animation métier",
+          "Concession, Réseau et Patrimoine, Gestion Finances",
+        ],
+        ["Interlocuteurs", "Frédéric MESCOFF"],
+      ],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+    y = pdf.lastAutoTable.finalY + 10;
 
-    // Historique
-    pdf.setFontSize(12);
-    pdf.text("Historique", 20, y);
-    y += 10;
-    pdf.setFontSize(10);
-    pdf.text("Version : 1", 20, y);
-    pdf.text("Date d’application : 13/10/2023", 70, y);
-    pdf.text("Nature de la modification : Création", 140, y);
-    y += 20;
+    // Historique sous forme de tableau
+    pdf.autoTable({
+      startY: y,
+      head: [["Version", "Date d'application", "Nature de la modification"]],
+      body: [["1", "13/10/2023", "Création"]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+    y = pdf.lastAutoTable.finalY + 10;
 
     // Résumé
     pdf.setFontSize(12);
@@ -69,33 +65,36 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     y += 20;
 
-    // Validation
-    pdf.setFontSize(12);
-    pdf.text("Validation", 20, y);
-    y += 10;
-    pdf.setFontSize(10);
-    pdf.text("Rédacteurs : Courraud B.", 20, y);
-    pdf.text("Approbateur : MESCOFF F.", 80, y);
-    pdf.text("Délégué Réseaux et Patrimoine : Visa", 140, y);
-    y += 20;
+    // Validation sous forme de tableau
+    pdf.autoTable({
+      startY: y,
+      head: [["Rédacteurs", "Approbateur", "Délégué Réseaux et Patrimoine"]],
+      body: [["Courraud B.", "MESCOFF F.", "Visa"]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+    y = pdf.lastAutoTable.finalY + 10;
 
-    // Infos commande
-    pdf.setFontSize(12);
-    pdf.text("Infos commande", 20, y);
-    y += 10;
-    pdf.setFontSize(10);
-    pdf.text("Responsable chantier : Stéphane", 20, y);
-    y += 10;
-    pdf.text("Entreprise : Technilevage", 20, y);
-    y += 10;
-    pdf.text("Lieu stockage dossier : SERVEUR", 20, y);
-    y += 10;
-    pdf.text("Début chantier : 05/06/2023", 20, y);
-    pdf.text("Fin chantier : 29/06/2023", 100, y);
-    pdf.text("Montant chantier : 5850€", 160, y);
-    y += 20;
+    // Infos commande sous forme de tableau
+    pdf.autoTable({
+      startY: y,
+      head: [["Responsable chantier", "Entreprise", "Lieu stockage dossier"]],
+      body: [["Stéphane", "Technilevage", "SERVEUR"]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+    y = pdf.lastAutoTable.finalY + 10;
 
-    // Ajouter des photos
+    pdf.autoTable({
+      startY: y,
+      head: [["Début chantier", "Fin chantier", "Montant chantier"]],
+      body: [["05/06/2023", "29/06/2023", "5850€"]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+    y = pdf.lastAutoTable.finalY + 10;
+
+    // Photos
     const photoInput = document.getElementById("photos");
     const photos = Array.from(photoInput.files);
 
