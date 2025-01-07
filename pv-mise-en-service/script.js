@@ -1,96 +1,136 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Document chargé");
-
   const generatePDFBtn = document.getElementById("generatePDF");
-  const form = document.getElementById("pvForm");
 
-  // Activer/Désactiver le bouton PDF
-  form.addEventListener("input", () => {
-    console.log("Validation des champs...");
-    const isValid = Array.from(form.elements).every((el) => {
-      // Vérification des champs obligatoires
-      if (el.type === "file" || el.id === "summary") return true; // Champs optionnels
-      if (el.required) {
-        return el.value.trim() !== ""; // Vérifie que le champ n'est pas vide
-      }
-      return true; // Les champs non requis passent toujours
-    });
-    console.log("Formulaire valide :", isValid);
-    generatePDFBtn.disabled = !isValid;
-  });
-
-  // Fonction de génération du PDF
   generatePDFBtn.addEventListener("click", async () => {
-    console.log("Bouton 'Générer PDF' cliqué");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
 
-    try {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-      console.log("jsPDF initialisé");
+    let y = 20; // Position initiale verticale
 
-      // Récupération des champs
-      const title = document.getElementById("title").value;
-      const responsable = document.getElementById("responsable").value;
-      const entreprise = document.getElementById("entreprise").value;
-      const startDate = document.getElementById("startDate").value;
-      const endDate = document.getElementById("endDate").value;
-      const amount = document.getElementById("amount").value;
-      const summary =
-        document.getElementById("summary").value || "Aucun résumé fourni";
+    // En-tête
+    pdf.setFontSize(16);
+    pdf.text("PV Mise En Service Technique", 105, y, { align: "center" });
+    y += 10;
+    pdf.setFontSize(14);
+    pdf.text("Achat Véhicule électrique SEIN", 105, y, { align: "center" });
+    y += 20;
 
-      // Récupération des photos
-      const photosInput = document.getElementById("photos");
-      const photos = Array.from(photosInput.files);
+    // Informations EDF
+    pdf.setFontSize(10);
+    pdf.text("EDF SA", 20, y);
+    pdf.text("22-30, avenue de Wagram", 20, y + 5);
+    pdf.text("75382 Paris cedex 08", 20, y + 10);
+    pdf.text("Capital de 960 069 513 euros", 20, y + 15);
+    pdf.text("552 081 317 R.C.S. Paris", 20, y + 20);
+    pdf.text("www.edf.com", 20, y + 25);
+    y += 35;
 
-      // Remplir le PDF
-      pdf.setFontSize(16);
-      pdf.text("PV de Mise en Service Technique", 105, 20, { align: "center" });
+    // Note interne
+    pdf.setFontSize(12);
+    pdf.text("Note interne", 20, y);
+    y += 10;
+    pdf.setFontSize(10);
+    pdf.text(
+      "Document associé : Note SEI PTE 34 Guide d’utilisation de l’outil de valorisation pour immobilisation des remises gratuites d’ouvrages (VRG 2009) pour les centres SEI",
+      20,
+      y,
+      { maxWidth: 170 }
+    );
+    y += 20;
+    pdf.text(
+      "Animation métier : Concession, Réseau et Patrimoine, Gestion Finances",
+      20,
+      y
+    );
+    y += 10;
+    pdf.text("Interlocuteurs : Frédéric MESCOFF", 20, y);
+    y += 15;
 
-      pdf.setFontSize(12);
-      let y = 30;
-      pdf.text(`Titre : ${title}`, 20, y);
-      y += 10;
-      pdf.text(`Responsable : ${responsable}`, 20, y);
-      y += 10;
-      pdf.text(`Entreprise : ${entreprise}`, 20, y);
-      y += 10;
-      pdf.text(`Date début : ${startDate}`, 20, y);
-      y += 10;
-      pdf.text(`Date fin : ${endDate}`, 20, y);
-      y += 10;
-      pdf.text(`Montant : ${amount} €`, 20, y);
-      y += 10;
-      pdf.text("Résumé :", 20, y);
-      y += 10;
-      pdf.text(summary, 20, y);
+    // Historique
+    pdf.setFontSize(12);
+    pdf.text("Historique", 20, y);
+    y += 10;
+    pdf.setFontSize(10);
+    pdf.text("Version : 1", 20, y);
+    pdf.text("Date d’application : 13/10/2023", 70, y);
+    pdf.text("Nature de la modification : Création", 140, y);
+    y += 20;
 
-      // Ajouter les photos au PDF
-      y += 20;
-      for (const photo of photos) {
-        if (photo) {
-          const imgData = await toDataURL(photo);
-          pdf.addImage(imgData, "JPEG", 20, y, 60, 40);
-          y += 50;
+    // Résumé
+    pdf.setFontSize(12);
+    pdf.text("Résumé", 20, y);
+    y += 10;
+    pdf.setFontSize(10);
+    pdf.text(
+      "L’objet de ce document est de proposer un descriptif des E.T.I. pour l’achat d’un véhicule électrique pour l’ile de Sein. (GOUPIL)",
+      20,
+      y,
+      { maxWidth: 170 }
+    );
+    y += 20;
 
-          if (y > 270) {
-            pdf.addPage();
-            y = 20;
-          }
+    // Validation
+    pdf.setFontSize(12);
+    pdf.text("Validation", 20, y);
+    y += 10;
+    pdf.setFontSize(10);
+    pdf.text("Rédacteurs : Courraud B.", 20, y);
+    pdf.text("Approbateur : MESCOFF F.", 80, y);
+    pdf.text("Délégué Réseaux et Patrimoine : Visa", 140, y);
+    y += 20;
+
+    // Infos commande
+    pdf.setFontSize(12);
+    pdf.text("Infos commande", 20, y);
+    y += 10;
+    pdf.setFontSize(10);
+    pdf.text("Responsable chantier : Stéphane", 20, y);
+    y += 10;
+    pdf.text("Entreprise : Technilevage", 20, y);
+    y += 10;
+    pdf.text("Lieu stockage dossier : SERVEUR", 20, y);
+    y += 10;
+    pdf.text("Début chantier : 05/06/2023", 20, y);
+    pdf.text("Fin chantier : 29/06/2023", 100, y);
+    pdf.text("Montant chantier : 5850€", 160, y);
+    y += 20;
+
+    // Ajouter des photos
+    const photoInput = document.getElementById("photos");
+    const photos = Array.from(photoInput.files);
+
+    pdf.setFontSize(12);
+    pdf.text("Photos :", 20, y);
+    y += 10;
+
+    for (const photo of photos) {
+      if (photo) {
+        const imgData = await toDataURL(photo);
+        pdf.addImage(imgData, "JPEG", 20, y, 60, 40);
+        y += 50;
+
+        // Si dépassement de la page
+        if (y > 270) {
+          pdf.addPage();
+          y = 20;
         }
       }
-
-      // Sauvegarder le PDF
-      pdf.save(`${title}.pdf`);
-      console.log("PDF généré avec succès !");
-    } catch (error) {
-      console.error("Erreur lors de la génération du PDF :", error);
-      alert(
-        "Une erreur est survenue lors de la génération du PDF. Vérifiez vos entrées."
-      );
     }
+
+    // Pied de page
+    pdf.setFontSize(10);
+    pdf.text(
+      "EDF SEI – Agence Ile du Ponant – 195 rue Ernestine de Trémaudan – BP 10017 – 29801 BREST CEDEX",
+      20,
+      290,
+      { maxWidth: 170 }
+    );
+
+    // Sauvegarder le PDF
+    pdf.save("pv_mise_en_service.pdf");
   });
 
-  // Convertir une image en DataURL
+  // Fonction pour convertir une image en DataURL
   function toDataURL(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
