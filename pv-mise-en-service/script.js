@@ -5,131 +5,132 @@ document.addEventListener("DOMContentLoaded", () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
-    let y = 20; // Position initiale verticale
+    let y = 20; // Position verticale initiale
 
-    // En-tête
+    // ** Page 1 : En-tête et sections descriptives **
+    pdf.addImage("edf-logo.png", "PNG", 10, 10, 30, 10); // Logo EDF
+    pdf.setFillColor(0, 51, 153); // Couleur bleue pour l'encadré
+    pdf.rect(0, 20, 210, 15, "F");
+    pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(16);
-    pdf.text("PV Mise En Service Technique", 105, y, { align: "center" });
-    y += 20;
+    pdf.text("PV Mise En Service Technique", 105, 30, { align: "center" });
 
-    // Informations EDF
-    pdf.setFontSize(10);
-    pdf.text("EDF SA", 20, y);
-    pdf.text("22-30, avenue de Wagram", 20, y + 5);
-    pdf.text("75382 Paris cedex 08", 20, y + 10);
-    pdf.text("Capital de 960 069 513 euros", 20, y + 15);
-    pdf.text("552 081 317 R.C.S. Paris", 20, y + 20);
-    pdf.text("www.edf.com", 20, y + 25);
-    y += 35;
-
-    // Note interne sous forme de tableau
-    pdf.autoTable({
-      startY: y,
-      head: [["Section", "Contenu"]],
-      body: [
-        [
-          "Document associé",
-          "Note SEI PTE 34 Guide d’utilisation de l’outil de valorisation pour immobilisation des remises gratuites d’ouvrages (VRG 2009) pour les centres SEI",
-        ],
-        [
-          "Animation métier",
-          "Concession, Réseau et Patrimoine, Gestion Finances",
-        ],
-        ["Interlocuteurs", "Frédéric MESCOFF"],
-      ],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
-    y = pdf.lastAutoTable.finalY + 10;
-
-    // Historique sous forme de tableau
-    pdf.autoTable({
-      startY: y,
-      head: [["Version", "Date d'application", "Nature de la modification"]],
-      body: [["1", "13/10/2023", "Création"]],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
-    y = pdf.lastAutoTable.finalY + 10;
-
-    // Résumé
+    const title = document.getElementById("title").value;
+    pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(12);
-    pdf.text("Résumé", 20, y);
-    y += 10;
+    pdf.text(title, 20, 50);
+
     pdf.setFontSize(10);
+    pdf.text("Note interne", 20, 60);
     pdf.text(
-      "L’objet de ce document est de proposer un descriptif des E.T.I. pour l’achat d’un véhicule électrique pour l’ile de Sein. (GOUPIL)",
+      "Document associé : Note SEI PTE 34 Guide d’utilisation de l’outil de valorisation pour immobilisation des remises gratuites d’ouvrages.",
       20,
-      y,
+      65,
       { maxWidth: 170 }
     );
-    y += 20;
+    pdf.text(
+      "Animation métier : Concession, Réseau et Patrimoine, Gestion Finances",
+      20,
+      75
+    );
+    pdf.text("Interlocuteurs : Frédéric MESCOFF", 20, 85);
 
-    // Validation sous forme de tableau
+    // Historique
+    const historique =
+      document.getElementById("historique").value || "Aucun historique fourni";
     pdf.autoTable({
-      startY: y,
-      head: [["Rédacteurs", "Approbateur", "Délégué Réseaux et Patrimoine"]],
+      startY: 90,
+      head: [["Version", "Date d'application", "Nature de la modification"]],
+      body: [[historique.split(",").map((item) => item.trim())]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+
+    // Résumé
+    const summary =
+      document.getElementById("summary").value || "Aucun résumé fourni";
+    pdf.autoTable({
+      startY: pdf.lastAutoTable.finalY + 10,
+      head: [["Résumé"]],
+      body: [[summary]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+
+    // Validation
+    pdf.autoTable({
+      startY: pdf.lastAutoTable.finalY + 10,
+      head: [["Rédacteurs", "Approbateurs", "Délégué Réseaux et Patrimoine"]],
       body: [["Courraud B.", "MESCOFF F.", "Visa"]],
       theme: "grid",
       headStyles: { fillColor: [0, 51, 153] },
     });
-    y = pdf.lastAutoTable.finalY + 10;
 
-    // Infos commande sous forme de tableau
+    pdf.addPage();
+
+    // ** Page 2 : Infos commande **
+    pdf.addImage("edf-logo.png", "PNG", 10, 10, 30, 10);
+    pdf.setFontSize(14);
+    pdf.setTextColor(0, 102, 0); // Vert
+    pdf.text("Infos commande :", 20, 30);
+
+    // Photos en haut
+    const photosInput = document.getElementById("photos");
+    const photos = Array.from(photosInput.files);
+
+    let imageY = 40;
+    for (let i = 0; i < Math.min(2, photos.length); i++) {
+      const imgData = await toDataURL(photos[i]);
+      pdf.addImage(imgData, "JPEG", 20, imageY, 60, 40);
+      imageY += 50;
+    }
+
+    // Tableau infos commande
+    const responsable = document.getElementById("responsable").value;
+    const entreprise = document.getElementById("entreprise").value;
+    const stockage = document.getElementById("stockage").value;
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+    const amount = document.getElementById("amount").value;
+    const eotp = document.getElementById("eotp").value || "Non spécifié";
+
     pdf.autoTable({
-      startY: y,
+      startY: imageY + 10,
       head: [["Responsable chantier", "Entreprise", "Lieu stockage dossier"]],
-      body: [["Stéphane", "Technilevage", "SERVEUR"]],
+      body: [[responsable, entreprise, stockage]],
       theme: "grid",
       headStyles: { fillColor: [0, 51, 153] },
     });
-    y = pdf.lastAutoTable.finalY + 10;
 
     pdf.autoTable({
-      startY: y,
-      head: [["Début chantier", "Fin chantier", "Montant chantier"]],
-      body: [["05/06/2023", "29/06/2023", "5850€"]],
+      startY: pdf.lastAutoTable.finalY + 10,
+      head: [["Début chantier", "Fin chantier", "Montant chantier", "EOTP"]],
+      body: [[startDate, endDate, `${amount}€`, eotp]],
       theme: "grid",
       headStyles: { fillColor: [0, 51, 153] },
     });
-    y = pdf.lastAutoTable.finalY + 10;
 
-    // Photos
-    const photoInput = document.getElementById("photos");
-    const photos = Array.from(photoInput.files);
+    pdf.addPage();
 
-    pdf.setFontSize(12);
-    pdf.text("Photos :", 20, y);
-    y += 10;
+    // ** Page 3 : Photos supplémentaires **
+    pdf.addImage("edf-logo.png", "PNG", 10, 10, 30, 10);
+    let photoY = 30;
+    for (let i = 2; i < photos.length; i++) {
+      const imgData = await toDataURL(photos[i]);
+      pdf.addImage(imgData, "JPEG", 20, photoY, 60, 40);
+      photoY += 50;
 
-    for (const photo of photos) {
-      if (photo) {
-        const imgData = await toDataURL(photo);
-        pdf.addImage(imgData, "JPEG", 20, y, 60, 40);
-        y += 50;
-
-        // Si dépassement de la page
-        if (y > 270) {
-          pdf.addPage();
-          y = 20;
-        }
+      if (photoY > 270) {
+        pdf.addPage();
+        photoY = 30;
       }
     }
 
-    // Pied de page
-    pdf.setFontSize(10);
-    pdf.text(
-      "EDF SEI – Agence Ile du Ponant – 195 rue Ernestine de Trémaudan – BP 10017 – 29801 BREST CEDEX",
-      20,
-      290,
-      { maxWidth: 170 }
-    );
-
-    // Sauvegarder le PDF
+    // Sauvegarde
     pdf.save("pv_mise_en_service.pdf");
   });
 
-  // Fonction pour convertir une image en DataURL
+  // Convertir une image en DataURL
   function toDataURL(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();

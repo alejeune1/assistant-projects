@@ -10,17 +10,12 @@
   </head>
   <body>
     <div class="container">
-      <h1>PV de Mise en Service</h1>
+      <h1>PV Mise En Service</h1>
       <form id="pvForm">
         <label for="title">Titre : *</label>
-        <input
-          type="text"
-          id="title"
-          placeholder="Ex: Achat Véhicule électrique SEIN"
-          required
-        />
+        <input type="text" id="title" placeholder="Titre du PV" required />
 
-        <label for="responsable">Responsable : *</label>
+        <label for="responsable">Responsable chantier : *</label>
         <input
           type="text"
           id="responsable"
@@ -36,6 +31,9 @@
           required
         />
 
+        <label for="stockage">Lieu stockage dossier : *</label>
+        <input type="text" id="stockage" placeholder="Ex: SERVEUR" required />
+
         <label for="startDate">Date début : *</label>
         <input type="date" id="startDate" required />
 
@@ -45,15 +43,25 @@
         <label for="amount">Montant (€) : *</label>
         <input type="number" id="amount" placeholder="Ex: 5850" required />
 
+        <label for="eotp">EOTP Chantier :</label>
+        <input type="text" id="eotp" placeholder="Ex: E736/CORAMO/A-VEHG" />
+
         <label for="summary">Résumé :</label>
         <textarea
           id="summary"
           rows="4"
-          placeholder="Description des travaux..."
+          placeholder="Description du projet"
         ></textarea>
 
-        <label for="photos">Photos : *</label>
-        <input type="file" id="photos" accept="image/*" multiple required />
+        <label for="historique">Historique :</label>
+        <textarea
+          id="historique"
+          rows="4"
+          placeholder="Ex: Version 1, Date d'application, Nature de modification"
+        ></textarea>
+
+        <label for="photos">Photos :</label>
+        <input type="file" id="photos" accept="image/*" multiple />
 
         <button type="button" id="generatePDF">Générer PDF</button>
       </form>
