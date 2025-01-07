@@ -8,9 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = 20;
 
     // ** Page 1 : En-tête et sections descriptives **
-    pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF
+    pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF ajusté
     pdf.setFillColor(0, 51, 153); // Couleur bleue pour la bannière
-    pdf.rect(0, 30, 210, 15, "F"); // Bannière décalée sous le logo
+    pdf.rect(0, 30, 210, 15, "F"); // Bannière bleue
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(16);
     pdf.text("PV Mise En Service Technique", 105, 40, { align: "center" });
@@ -68,44 +68,95 @@ document.addEventListener("DOMContentLoaded", () => {
       headStyles: { fillColor: [0, 51, 153] },
     });
 
-    // ** Page 3 : Photos **
+    // ** Page 2 : Infos commande **
     pdf.addPage();
     pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF
-    pdf.setFontSize(16);
-    pdf.text("Photos :", 20, 30);
+    pdf.setFontSize(14);
+    pdf.setTextColor(0, 102, 0); // Couleur verte pour le titre
+    pdf.text("Infos commande :", 20, 30);
 
-    let x = 20;
-    y = 40;
-    const pageWidth = 190;
-    const maxHeight = 100;
-    const padding = 10;
-
+    // Photos ou captures en haut de la page
     const photosInput = document.getElementById("photos");
     const photos = Array.from(photosInput.files);
 
-    for (const photo of photos) {
-      const imgData = await toDataURL(photo);
+    let x = 20;
+    y = 40;
 
+    for (let i = 0; i < Math.min(2, photos.length); i++) {
+      const imgData = await toDataURL(photos[i]);
       const img = new Image();
       img.src = imgData;
 
       const ratio = img.width / img.height;
-      let displayWidth = Math.min(pageWidth - 2 * x, img.width);
+      let displayWidth = Math.min(80, img.width); // Largeur maximale : 80
       let displayHeight = displayWidth / ratio;
 
-      if (displayHeight > maxHeight) {
-        displayHeight = maxHeight;
-        displayWidth = displayHeight * ratio;
-      }
-
       pdf.addImage(imgData, "JPEG", x, y, displayWidth, displayHeight);
+      y += displayHeight + 10;
+    }
 
-      y += displayHeight + padding;
+    // Tableau Infos commande
+    const responsable = document.getElementById("responsable").value;
+    const entreprise = document.getElementById("entreprise").value;
+    const stockage = document.getElementById("stockage").value;
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+    const amount = document.getElementById("amount").value;
+    const eotp = document.getElementById("eotp").value || "Non spécifié";
 
-      if (y + displayHeight + padding > 280) {
-        pdf.addPage();
-        pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Nouveau logo pour la page
-        y = 40;
+    pdf.autoTable({
+      startY: y + 10,
+      head: [["Responsable chantier", "Entreprise", "Lieu stockage dossier"]],
+      body: [[responsable, entreprise, stockage]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+
+    pdf.autoTable({
+      startY: pdf.lastAutoTable.finalY + 10,
+      head: [["Début chantier", "Fin chantier", "Montant chantier", "EOTP"]],
+      body: [[startDate, endDate, `${amount}€`, eotp]],
+      theme: "grid",
+      headStyles: { fillColor: [0, 51, 153] },
+    });
+
+    // Espace en bas pour une autre photo ou capture d'écran
+    if (photos.length > 2) {
+      const imgData = await toDataURL(photos[2]);
+      pdf.addImage(imgData, "JPEG", 20, pdf.lastAutoTable.finalY + 20, 80, 60);
+    }
+
+    // ** Page 3 : Photos supplémentaires **
+    if (photos.length > 3) {
+      pdf.addPage();
+      pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF
+      pdf.setFontSize(16);
+      pdf.text("Photos :", 20, 30);
+
+      y = 40;
+
+      for (let i = 3; i < photos.length; i++) {
+        const imgData = await toDataURL(photos[i]);
+        const img = new Image();
+        img.src = imgData;
+
+        const ratio = img.width / img.height;
+        let displayWidth = Math.min(190, img.width); // Largeur maximale
+        let displayHeight = displayWidth / ratio;
+
+        if (displayHeight > 100) {
+          displayHeight = 100;
+          displayWidth = displayHeight * ratio;
+        }
+
+        pdf.addImage(imgData, "JPEG", x, y, displayWidth, displayHeight);
+        y += displayHeight + 10;
+
+        if (y + displayHeight > 280) {
+          pdf.addPage();
+          pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Nouveau logo
+          y = 40;
+        }
       }
     }
 
