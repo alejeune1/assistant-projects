@@ -60,6 +60,64 @@
           placeholder="Ex: Version 1, Date d'application, Nature de modification"
         ></textarea>
 
+        <label for="documentAssocie">Document associé :</label>
+        <textarea
+          id="documentAssocie"
+          rows="4"
+          placeholder="Ex: Note SEI PTE 34 Guide d’utilisation..."
+        ></textarea>
+
+        <label for="animationMetier">Animation métier :</label>
+        <textarea
+          id="animationMetier"
+          rows="4"
+          placeholder="Ex: Concession, Réseau et Patrimoine..."
+        ></textarea>
+
+        <label for="interlocuteurs">Interlocuteurs :</label>
+        <textarea
+          id="interlocuteurs"
+          rows="4"
+          placeholder="Ex: Frédéric MESCOFF"
+        ></textarea>
+
+        <h3>Validation</h3>
+        <table id="validationTable">
+          <thead>
+            <tr>
+              <th>Rédacteurs</th>
+              <th>Approbateurs</th>
+              <th>Délégué Réseaux et Patrimoine</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  name="redacteurs[]"
+                  placeholder="Nom du rédacteur"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  name="approbateurs[]"
+                  placeholder="Nom de l'approbateur"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  name="delegue[]"
+                  placeholder="Nom du délégué"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" id="addValidationRow">Ajouter une ligne</button>
+
         <label for="photos">Photos :</label>
         <input type="file" id="photos" accept="image/*" multiple />
 

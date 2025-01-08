@@ -1,5 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
   const generatePDFBtn = document.getElementById("generatePDF");
+  const addValidationRowBtn = document.getElementById("addValidationRow");
+  const validationTableBody = document.querySelector("#validationTable tbody");
+
+  // Ajouter une ligne dans le tableau Validation
+  addValidationRowBtn.addEventListener("click", () => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+          <td><input type="text" name="redacteurs[]" placeholder="Nom du rédacteur" /></td>
+          <td><input type="text" name="approbateurs[]" placeholder="Nom de l'approbateur" /></td>
+          <td><input type="text" name="delegue[]" placeholder="Nom du délégué" /></td>
+      `;
+    validationTableBody.appendChild(row);
+  });
 
   generatePDFBtn.addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
@@ -20,20 +33,24 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.setFontSize(12);
     pdf.text(title, 20, 55);
 
+    // Nouvelles sections ajoutées
+    const documentAssocie = document.getElementById("documentAssocie").value;
+    pdf.setFontSize(12);
+    pdf.text("Document associé :", 20, 65);
     pdf.setFontSize(10);
-    pdf.text("Note interne", 20, 65);
-    pdf.text(
-      "Document associé : Note SEI PTE 34 Guide d’utilisation de l’outil de valorisation pour immobilisation des remises gratuites d’ouvrages.",
-      20,
-      70,
-      { maxWidth: 170 }
-    );
-    pdf.text(
-      "Animation métier : Concession, Réseau et Patrimoine, Gestion Finances",
-      20,
-      80
-    );
-    pdf.text("Interlocuteurs : Frédéric MESCOFF", 20, 90);
+    pdf.text(documentAssocie, 20, 70, { maxWidth: 170 });
+
+    const animationMetier = document.getElementById("animationMetier").value;
+    pdf.setFontSize(12);
+    pdf.text("Animation métier :", 20, 85);
+    pdf.setFontSize(10);
+    pdf.text(animationMetier, 20, 90, { maxWidth: 170 });
+
+    const interlocuteurs = document.getElementById("interlocuteurs").value;
+    pdf.setFontSize(12);
+    pdf.text("Interlocuteurs :", 20, 105);
+    pdf.setFontSize(10);
+    pdf.text(interlocuteurs, 20, 110, { maxWidth: 170 });
 
     // Historique avec données réparties
     const historique =
@@ -41,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Version 1, 13/10/2023, Création";
     const historiqueData = historique.split(",").map((item) => item.trim());
     pdf.autoTable({
-      startY: 100,
+      startY: 120,
       head: [["Version", "Date d'application", "Nature de la modification"]],
       body: [historiqueData],
       theme: "grid",
@@ -59,11 +76,19 @@ document.addEventListener("DOMContentLoaded", () => {
       headStyles: { fillColor: [0, 51, 153] },
     });
 
-    // Validation
+    // Validation dynamique
+    const validationRows = Array.from(
+      validationTableBody.querySelectorAll("tr")
+    );
+    const validationData = validationRows.map((row) => {
+      const inputs = row.querySelectorAll("input");
+      return Array.from(inputs).map((input) => input.value.trim());
+    });
+
     pdf.autoTable({
       startY: pdf.lastAutoTable.finalY + 10,
       head: [["Rédacteurs", "Approbateurs", "Délégué Réseaux et Patrimoine"]],
-      body: [["Courraud B.", "MESCOFF F.", "Visa"]],
+      body: validationData,
       theme: "grid",
       headStyles: { fillColor: [0, 51, 153] },
     });
@@ -123,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ajout du titre "Photos :" après les tableaux
     y = pdf.lastAutoTable.finalY + 20; // Correction de la position
     pdf.setFontSize(14);
-    pdf.setTextColor(0, 102, 0);
+    pdf.setTextColor(0, 0, 0);
     pdf.text("Photos :", 20, y);
 
     // Affichage des photos supplémentaires sous le titre
