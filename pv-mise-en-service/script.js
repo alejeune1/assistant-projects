@@ -96,6 +96,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Tableau Infos commande
+    const responsable = document.getElementById("responsable").value;
+    const entreprise = document.getElementById("entreprise").value;
+    const stockage = document.getElementById("stockage").value;
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+    const amount = document.getElementById("amount").value;
+    const eotp = document.getElementById("eotp").value || "Non spécifié";
+
     pdf.autoTable({
       startY: y + 10,
       head: [["Responsable chantier", "Entreprise", "Lieu stockage dossier"]],
@@ -107,16 +115,16 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.autoTable({
       startY: pdf.lastAutoTable.finalY + 10,
       head: [["Début chantier", "Fin chantier", "Montant chantier", "EOTP"]],
-      body: [[startDate, endDate, `${amount}€`, eotp]],
+      body: [[startDate, endDate, amount ? `${amount}€` : "N/A", eotp]],
       theme: "grid",
       headStyles: { fillColor: [0, 51, 153] },
     });
 
-    // Correction pour le titre "Photos :"
-    y = pdf.lastAutoTable.finalY + 20; // Ajout d'une marge suffisante après le tableau
+    // Ajout du titre "Photos :" après les tableaux
+    y = pdf.lastAutoTable.finalY + 20;
     pdf.setFontSize(14);
-    pdf.setTextColor(0, 0, 0);
-    pdf.text("Photos :", 20, y);
+    pdf.setTextColor(0, 102, 0);
+    pdf.text("Photos :", 20, 30);
 
     // Afficher la première photo supplémentaire sous le titre "Photos :"
     y += 10;
