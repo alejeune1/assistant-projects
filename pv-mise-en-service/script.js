@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ajout du titre "Photos :" après les tableaux
     y = pdf.lastAutoTable.finalY + 20; // Correction de la position
     pdf.setFontSize(14);
-    pdf.setTextColor(0, 0, 0);
+    pdf.setTextColor(0, 102, 0);
     pdf.text("Photos :", 20, y);
 
     // Affichage des photos supplémentaires sous le titre
