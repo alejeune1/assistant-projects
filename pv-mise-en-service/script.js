@@ -121,12 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Ajout du titre "Photos :" après les tableaux
-    y = pdf.lastAutoTable.finalY + 20;
+    y = pdf.lastAutoTable.finalY + 20; // Correction de la position
     pdf.setFontSize(14);
     pdf.setTextColor(0, 102, 0);
-    pdf.text("Photos :", 20, 30);
+    pdf.text("Photos :", 20, y);
 
-    // Afficher la première photo supplémentaire sous le titre "Photos :"
+    // Affichage des photos supplémentaires sous le titre
     y += 10;
     if (photos.length > 2) {
       const imgData = await toDataURL(photos[2]);
