@@ -18,8 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
-    let y = 20;
-
     // ** Page 1 : En-tête et sections descriptives **
     pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF ajusté
     pdf.setFillColor(0, 51, 153); // Couleur bleue pour la bannière
@@ -100,24 +98,37 @@ document.addEventListener("DOMContentLoaded", () => {
     pdf.setTextColor(0, 102, 0); // Couleur verte pour le titre
     pdf.text("Infos commande :", 20, 30);
 
-    // Photos ou captures en haut de la page
+    // Gestion des données
     const photosInput = document.getElementById("photos");
+    const photoCategory = document.getElementById("photoCategory").value; // Catégorie sélectionnée
     const photos = Array.from(photosInput.files);
 
-    let x = 20;
-    y = 40;
+    let yInfosCommandes = 100; // Position initiale pour Infos commandes
+    let yPhotos = 150; // Position initiale pour Photos
 
-    for (let i = 0; i < Math.min(2, photos.length); i++) {
-      const imgData = await toDataURL(photos[i]);
-      const img = new Image();
-      img.src = imgData;
+    if (photos.length > 0) {
+      // Parcours des photos ajoutées dans le formulaire
+      for (let i = 0; i < photos.length; i++) {
+        const imgData = await toDataURL(photos[i]);
 
-      const ratio = img.width / img.height;
-      let displayWidth = Math.min(80, img.width); // Largeur maximale : 80
-      let displayHeight = displayWidth / ratio;
-
-      pdf.addImage(imgData, "JPEG", x, y, displayWidth, displayHeight);
-      y += displayHeight + 10;
+        if (photoCategory === "infosCommandes") {
+          // Ajouter les photos dans la zone Infos commandes
+          if (yInfosCommandes > 260) {
+            pdf.addPage();
+            yInfosCommandes = 40; // Réinitialiser la position sur une nouvelle page
+          }
+          pdf.addImage(imgData, "JPEG", 20, yInfosCommandes, 80, 60);
+          yInfosCommandes += 70; // Espacement entre les images
+        } else if (photoCategory === "photos") {
+          // Ajouter les photos dans la zone Photos
+          if (yPhotos > 260) {
+            pdf.addPage();
+            yPhotos = 40; // Réinitialiser la position sur une nouvelle page
+          }
+          pdf.addImage(imgData, "JPEG", 20, yPhotos, 80, 60);
+          yPhotos += 70; // Espacement entre les images
+        }
+      }
     }
 
     // Tableau Infos commande
@@ -129,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const amount = document.getElementById("amount").value;
     const eotp = document.getElementById("eotp").value || "Non spécifié";
 
+    let y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY : 40; // Initialise y après le dernier tableau ou à 40
     pdf.autoTable({
       startY: y + 10,
       head: [["Responsable chantier", "Entreprise", "Lieu stockage dossier"]],
@@ -137,8 +149,10 @@ document.addEventListener("DOMContentLoaded", () => {
       headStyles: { fillColor: [0, 51, 153] },
     });
 
+    y = pdf.lastAutoTable.finalY + 10;
+
     pdf.autoTable({
-      startY: pdf.lastAutoTable.finalY + 10,
+      startY: y,
       head: [["Début chantier", "Fin chantier", "Montant chantier", "EOTP"]],
       body: [[startDate, endDate, amount ? `${amount}€` : "N/A", eotp]],
       theme: "grid",

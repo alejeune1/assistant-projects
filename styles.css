@@ -47,3 +47,12 @@ ul li a:hover {
   background-color: #0056b3;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
+#photoCategory {
+  display: block;
+  margin-top: 10px;
+  width: 95%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
