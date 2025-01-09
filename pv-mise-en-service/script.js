@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = 20;
 
     // ** Page 1 : En-tête et sections descriptives **
-    pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF ajusté
+    pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF ajusté
     pdf.setFillColor(0, 51, 153); // Couleur bleue pour la bannière
     pdf.rect(0, 30, 210, 15, "F"); // Bannière bleue
     pdf.setTextColor(255, 255, 255);
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ** Page 2 : Infos commande **
     pdf.addPage();
-    pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF
+    pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF
     pdf.setFontSize(14);
     pdf.setTextColor(0, 102, 0); // Couleur verte pour le titre
     pdf.text("Infos commande :", 20, 30);
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ** Page 3 : Photos supplémentaires **
     if (photos.length > 3) {
       pdf.addPage();
-      pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Logo EDF
+      pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF
       pdf.setFontSize(16);
       pdf.text("Photos :", 20, 30);
 
@@ -186,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (y + displayHeight > 280) {
           pdf.addPage();
-          pdf.addImage("EDF.png", "PNG", 10, 10, 20, 15); // Nouveau logo
+          pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Nouveau logo
           y = 40;
         }
       }
