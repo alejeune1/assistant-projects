@@ -2,8 +2,8 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f9; /* Doux et neutre */
-  color: #333; /* Texte sombre pour une bonne lisibilité */
+  background-color: #f4f4f9;
+  color: #333;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,8 +15,8 @@ body {
 }
 
 header h1 {
-  font-size: 2rem; /* Taille ajustée */
-  margin-bottom: 30px; /* Espacement avec les boutons */
+  font-size: 2rem;
+  margin-bottom: 30px;
   color: #007bff;
 }
 
@@ -35,7 +35,7 @@ ul li a {
   color: white;
   background-color: #007bff;
   padding: 10px 20px;
-  width: 250px; /* Largeur fixe pour les boutons */
+  width: 250px;
   border-radius: 5px;
   text-align: center;
   font-weight: bold;
