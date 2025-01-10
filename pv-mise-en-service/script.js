@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
 
-    // ** Page 1 : En-tête et sections descriptives **
+    // Page 1 : En-tête et sections descriptives
     pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF ajusté
     pdf.setFillColor(0, 51, 153); // Couleur bleue pour la bannière
     pdf.rect(0, 30, 210, 15, "F"); // Bannière bleue
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
       headStyles: { fillColor: [0, 51, 153] },
     });
 
-    // ** Page 2 : Infos commande **
+    // Page 2 : Infos commande
     pdf.addPage();
     pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF
     pdf.setFontSize(14);
@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pdf.addImage(imgData, "JPEG", 20, y, 80, 60);
     }
 
-    // ** Page 3 : Photos supplémentaires **
+    // Page 3 : Photos supplémentaires
     if (photos.length > 3) {
       pdf.addPage();
       pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF
