@@ -27,7 +27,7 @@
         <label for="entreprise">Nom de l'Entreprise :</label>
         <input type="text" id="entreprise" required />
 
-        <label for="lieu">Lieu d'intervention :</label>
+        <label for="lieu">Lieu d'intervention / matériel concerné :</label>
         <input type="text" id="lieu" required />
 
         <label for="description">Description des Travaux Effectués :</label>
@@ -35,31 +35,38 @@
 
         <h3>Désignations des Pièces Fournies</h3>
         <table id="pieces-table">
-          <tr>
-            <th>Fabricant</th>
-            <th>Désignation</th>
-            <th>Quantité</th>
-          </tr>
-          <tr>
-            <td><input type="text" name="fabricant[]" /></td>
-            <td><input type="text" name="designation[]" /></td>
-            <td><input type="number" name="quantite[]" /></td>
-          </tr>
+          <thead>
+            <tr>
+              <th>Fabricant</th>
+              <th>Désignation</th>
+              <th>Quantité</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="text" name="fabricant[]" /></td>
+              <td><input type="text" name="designation[]" /></td>
+              <td><input type="number" name="quantite[]" min="0" /></td>
+              <td>
+                <button type="button" class="remove-piece">Supprimer</button>
+              </td>
+            </tr>
+          </tbody>
         </table>
+        <button type="button" id="add-piece">Ajouter une pièce</button>
 
         <h3>Temps d'Intervention</h3>
         <table id="intervention-table">
           <tr>
             <th>Noms Techniciens</th>
             <th>Date d'Intervention</th>
-            <th>Horaires</th>
             <th>Nombre d'Heures</th>
           </tr>
           <tr>
             <td><input type="text" name="techniciens[]" /></td>
             <td><input type="date" name="date_intervention[]" /></td>
-            <td><input type="text" name="horaires[]" /></td>
-            <td><input type="number" name="nbr_heures[]" /></td>
+            <td><input type="number" name="nbr_heures[]" min="0" /></td>
           </tr>
         </table>
 
@@ -70,35 +77,24 @@
           class="photo-upload"
           multiple
           accept="image/*"
+          capture="environment"
         />
         <div id="photo-preview"></div>
 
         <h3>Signatures</h3>
-        <label for="representant"
-          >Signature du Représentant de l'Entreprise (Nom/Prénom) :</label
-        >
-        <input type="text" id="representant" required />
+        <div class="signature-group">
+          <label for="representant">Nom de l'Entreprise :</label>
+          <input type="text" id="representant" required />
+          <label for="signatureEntreprise">Signature de l'Entreprise :</label>
+          <input type="file" id="signatureEntreprise" accept="image/*" />
+        </div>
 
-        <label for="agent">Signature Agent EDF (Nom/Prénom) :</label>
-        <input type="text" id="agent" required />
-
-        <h3>Signature du Représentant :</h3>
-        <canvas
-          id="signature-representant-canvas"
-          width="300"
-          height="150"
-          style="border: 1px solid #000"
-        ></canvas>
-        <button type="button" id="clear-representant">Effacer</button>
-
-        <h3>Signature de l'Agent EDF :</h3>
-        <canvas
-          id="signature-agent-canvas"
-          width="300"
-          height="150"
-          style="border: 1px solid #000"
-        ></canvas>
-        <button type="button" id="clear-agent">Effacer</button>
+        <div class="signature-group">
+          <label for="agent">Nom pour EDF :</label>
+          <input type="text" id="agent" required />
+          <label for="signatureEDF">Signature EDF :</label>
+          <input type="file" id="signatureEDF" accept="image/*" />
+        </div>
 
         <label for="commentaires">Commentaires :</label>
         <textarea id="commentaires" rows="4"></textarea>
@@ -112,5 +108,29 @@
     </footer>
 
     <script src="script.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const addPieceButton = document.getElementById("add-piece");
+        const piecesTableBody = document.querySelector("#pieces-table tbody");
+
+        addPieceButton.addEventListener("click", () => {
+          const newRow = document.createElement("tr");
+          newRow.innerHTML = `
+            <td><input type="text" name="fabricant[]" /></td>
+            <td><input type="text" name="designation[]" /></td>
+            <td><input type="number" name="quantite[]" min="0" /></td>
+            <td><button type="button" class="remove-piece">Supprimer</button></td>
+          `;
+          piecesTableBody.appendChild(newRow);
+        });
+
+        piecesTableBody.addEventListener("click", (event) => {
+          if (event.target.classList.contains("remove-piece")) {
+            const row = event.target.closest("tr");
+            piecesTableBody.removeChild(row);
+          }
+        });
+      });
+    </script>
   </body>
 </html>

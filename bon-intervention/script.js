@@ -61,8 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
           technicien: cells[0].value,
           date: cells[1].value,
-          horaires: cells[2].value,
-          heures: cells[3].value,
+          heures: cells[2].value,
         };
       });
 
@@ -146,6 +145,27 @@ document.addEventListener("DOMContentLoaded", () => {
       body: pieces.map((p) => [p.fabricant, p.designation, p.quantite]),
       theme: "grid",
     });
+
+    // Ajouter une ligne pour une nouvelle pièce
+    addPieceButton.addEventListener("click", () => {
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+      <td><input type="text" name="fabricant[]" /></td>
+      <td><input type="text" name="designation[]" /></td>
+      <td><input type="number" name="quantite[]" min="0" /></td>
+      <td><button type="button" class="remove-piece">Supprimer</button></td>
+    `;
+      piecesTableBody.appendChild(newRow);
+    });
+
+    // Supprimer une ligne de pièce
+    piecesTableBody.addEventListener("click", (event) => {
+      if (event.target.classList.contains("remove-piece")) {
+        const row = event.target.closest("tr");
+        piecesTableBody.removeChild(row);
+      }
+    });
+
     y = pdf.lastAutoTable.finalY + 10;
     drawSectionLine();
 
@@ -153,15 +173,30 @@ document.addEventListener("DOMContentLoaded", () => {
     y += 5;
     pdf.autoTable({
       startY: y,
-      head: [["Technicien", "Date", "Horaires", "Nombre d'Heures"]],
-      body: interventions.map((i) => [
-        i.technicien,
-        i.date,
-        i.horaires,
-        i.heures,
-      ]),
+      head: [["Technicien", "Date", "Nombre d'Heures"]],
+      body: interventions.map((i) => [i.technicien, i.date, i.heures]),
       theme: "grid",
     });
+
+    form.addEventListener("submit", (event) => {
+      const techniciens = document.querySelectorAll(
+        "#intervention-table input[name='techniciens[]']"
+      );
+      let technicienRenseigne = false;
+
+      // Vérifier si au moins un champ technicien est rempli
+      techniciens.forEach((technicien) => {
+        if (technicien.value.trim() !== "") {
+          technicienRenseigne = true;
+        }
+      });
+
+      if (!technicienRenseigne) {
+        event.preventDefault();
+        alert("Vous devez renseigner au moins un technicien.");
+      }
+    });
+
     y = pdf.lastAutoTable.finalY + 10;
     drawSectionLine();
 
