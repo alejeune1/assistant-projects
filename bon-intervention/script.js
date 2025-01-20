@@ -1,9 +1,59 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("form-cr");
 
+    // Initialisation des canvases pour les signatures
     const canvasRepresentant = setupSignatureCanvas("signature-representant-canvas", "clear-representant");
     const canvasAgent = setupSignatureCanvas("signature-agent-canvas", "clear-agent");
 
+    // Gestion des pièces fournies
+    const piecesTableBody = document.querySelector("#pieces-table tbody");
+    const addPieceButton = document.getElementById("add-piece");
+
+    addPieceButton.addEventListener("click", () => {
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td><input type="text" name="fabricant[]" placeholder="Fabricant" /></td>
+            <td><input type="text" name="designation[]" placeholder="Désignation" /></td>
+            <td><input type="number" name="quantite[]" min="1" placeholder="Quantité" /></td>
+            <td><button type="button" class="remove-piece">Supprimer</button></td>
+        `;
+        piecesTableBody.appendChild(newRow);
+    });
+
+    piecesTableBody.addEventListener("click", (event) => {
+        if (event.target.classList.contains("remove-piece")) {
+            const row = event.target.closest("tr");
+            if (row) {
+                piecesTableBody.removeChild(row);
+            }
+        }
+    });
+
+    // Gestion des intervenants
+    const interventionTableBody = document.querySelector("#intervention-table tbody");
+    const addTechnicianButton = document.getElementById("add-technician");
+
+    addTechnicianButton.addEventListener("click", () => {
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td><input type="text" name="techniciens[]" placeholder="Nom du technicien" /></td>
+            <td><input type="date" name="date_intervention[]" /></td>
+            <td><input type="number" name="nbr_heures[]" min="1" placeholder="Heures" /></td>
+            <td><button type="button" class="remove-technicien">Supprimer</button></td>
+        `;
+        interventionTableBody.appendChild(newRow);
+    });
+
+    interventionTableBody.addEventListener("click", (event) => {
+        if (event.target.classList.contains("remove-technicien")) {
+            const row = event.target.closest("tr");
+            if (row) {
+                interventionTableBody.removeChild(row);
+            }
+        }
+    });
+
+    // Soumission du formulaire et génération du PDF
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
@@ -127,7 +177,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             y = pdf.lastAutoTable.finalY + 10;
 
-            // Photos
             if (photos.length > 0) {
                 pdf.setTextColor(edfBlue);
                 pdf.text("Photos de l'Intervention", 20, y);
@@ -143,7 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // Signatures
             addSignatures(pdf, representantNom, agentNom, signatures, y);
         };
     }
@@ -151,8 +199,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function addSignatures(pdf, representantNom, agentNom, signatures, startY) {
         const y = startY + 20;
 
-        pdf.setDrawColor(0); // Noir
-        pdf.line(20, y - 5, 190, y - 5); // Ligne au-dessus des signatures
+        pdf.setDrawColor(0);
+        pdf.line(20, y - 5, 190, y - 5);
 
         pdf.addImage(signatures.representant, "PNG", 20, y, 60, 40);
         pdf.text("Représentant : " + representantNom, 20, y + 50);
@@ -160,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pdf.addImage(signatures.agent, "PNG", 120, y, 60, 40);
         pdf.text("Agent EDF : " + agentNom, 120, y + 50);
 
-        pdf.line(100, y - 5, 100, y + 55); // Ligne verticale entre les signatures
+        pdf.line(100, y - 5, 100, y + 55);
 
         pdf.save("bon_intervention.pdf");
     }
