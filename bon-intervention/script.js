@@ -1,24 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-cr");
 
-  // Prévisualisation des images
-  document.getElementById("photos").addEventListener("change", (event) => {
-    const previewContainer = document.getElementById("photo-preview");
-    previewContainer.innerHTML = ""; // Efface les anciennes prévisualisations
-
-    Array.from(event.target.files).forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = document.createElement("img");
-          img.src = e.target.result;
-          previewContainer.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  });
-
   // Initialisation des canvases pour les signatures
   const canvasRepresentant = setupSignatureCanvas(
     "signature-representant-canvas",
@@ -41,33 +23,60 @@ document.addEventListener("DOMContentLoaded", () => {
     const description = document.getElementById("description").value;
     const commentaires = document.getElementById("commentaires").value;
 
-    const pieces = Array.from(document.querySelectorAll("#pieces-table tr"))
-      .slice(1)
-      .map((row) => {
-        const cells = row.querySelectorAll("input");
-        return {
-          fabricant: cells[0].value,
-          designation: cells[1].value,
-          quantite: cells[2].value,
-        };
-      });
+    const pieces = Array.from(
+      document.querySelectorAll("#pieces-table tbody tr")
+    ).map((row) => {
+      const cells = row.querySelectorAll("input");
+      return {
+        fabricant: cells[0]?.value || "",
+        designation: cells[1]?.value || "",
+        quantite: cells[2]?.value || "",
+      };
+    });
 
     const interventions = Array.from(
-      document.querySelectorAll("#intervention-table tr")
-    )
-      .slice(1)
-      .map((row) => {
-        const cells = row.querySelectorAll("input");
-        return {
-          technicien: cells[0].value,
-          date: cells[1].value,
-          heures: cells[2].value,
-        };
-      });
+      document.querySelectorAll("#intervention-table tbody tr")
+    ).map((row) => {
+      const cells = row.querySelectorAll("input");
+      return {
+        technicien: cells[0]?.value || "",
+        date: cells[1]?.value || "",
+        horaires: cells[2]?.value || "",
+        heures: cells[3]?.value || "",
+      };
+    });
 
-    // Récupération des photos
-    const photoInput = document.getElementById("photos");
-    const photos = Array.from(photoInput.files);
+    const addTechnicianButton = document.getElementById("add-technician");
+    const interventionTableBody = document.querySelector(
+      "#intervention-table tbody"
+    );
+
+    // Ajouter une ligne pour un nouveau technicien
+    addTechnicianButton.addEventListener("click", () => {
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+      <td><input type="text" name="techniciens[]" placeholder="Nom du technicien" /></td>
+      <td><input type="date" name="date_intervention[]" /></td>
+      <td><input type="number" name="nbr_heures[]" min="0" placeholder="Heures" /></td>
+      <td><button type="button" class="remove-technicien">Supprimer</button></td>
+    `;
+      interventionTableBody.appendChild(newRow);
+    });
+
+    // Supprimer une ligne de technicien
+    interventionTableBody.addEventListener("click", (event) => {
+      if (event.target.classList.contains("remove-technicien")) {
+        const row = event.target.closest("tr");
+        if (row) {
+          interventionTableBody.removeChild(row);
+        }
+      }
+    });
+
+    const signatures = {
+      representant: canvasRepresentant.toDataURL("image/png"),
+      agent: canvasAgent.toDataURL("image/png"),
+    };
 
     genererPDF(
       date,
@@ -79,9 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pieces,
       interventions,
       commentaires,
-      photos,
-      canvasRepresentant,
-      canvasAgent
+      signatures
     );
   });
 
@@ -95,9 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pieces,
     interventions,
     commentaires,
-    photos,
-    canvasRepresentant,
-    canvasAgent
+    signatures
   ) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
@@ -107,37 +112,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pdf.setFontSize(12);
     let y = 30;
-    const leftX = 20;
 
-    const drawSectionLine = () => {
-      pdf.setDrawColor(0);
-      pdf.setLineWidth(0.5);
-      pdf.line(10, y, 200, y);
-      y += 5;
-    };
+    // Informations Générales
+    pdf.text("Informations Générales :", 20, y);
+    y += 10;
+    pdf.text(`Date : ${date}`, 20, y);
+    y += 10;
+    pdf.text(`Nom du Chantier : ${chantier}`, 20, y);
+    y += 10;
+    pdf.text(`Nom de la Centrale : ${centrale}`, 20, y);
+    y += 10;
+    pdf.text(`Nom de l'Entreprise : ${entreprise}`, 20, y);
+    y += 10;
+    pdf.text(`Lieu d'Intervention : ${lieu}`, 20, y);
+    y += 10;
 
-    pdf.text("Informations Générales :", leftX, y);
-    y += 10;
-    pdf.text(`Date : ${date}`, leftX, y);
-    y += 10;
-    pdf.text(`Nom du Chantier : ${chantier}`, leftX, y);
-    y += 10;
-    pdf.text(`Nom de la Centrale : ${centrale}`, leftX, y);
-    y += 10;
-    pdf.text(`Nom de l'Entreprise : ${entreprise}`, leftX, y);
-    y += 10;
-    pdf.text(`Lieu d'Intervention : ${lieu}`, leftX, y);
-    y += 10;
-    drawSectionLine();
-
-    pdf.text("Description des Travaux :", leftX, y);
+    // Description des Travaux
+    pdf.text("Description des Travaux :", 20, y);
     y += 10;
     const descLines = pdf.splitTextToSize(description, 170);
-    pdf.text(descLines, leftX, y);
-    y += descLines.length * 7 + 10;
-    drawSectionLine();
+    pdf.text(descLines, 20, y);
+    y += descLines.length * 7;
 
-    pdf.text("Désignations des Pièces Fournies :", leftX, y);
+    // Pièces Fournies
+    pdf.text("Désignations des Pièces Fournies :", 20, y);
     y += 5;
     pdf.autoTable({
       startY: y,
@@ -145,156 +143,46 @@ document.addEventListener("DOMContentLoaded", () => {
       body: pieces.map((p) => [p.fabricant, p.designation, p.quantite]),
       theme: "grid",
     });
-
-    // Ajouter une ligne pour une nouvelle pièce
-    addPieceButton.addEventListener("click", () => {
-      const newRow = document.createElement("tr");
-      newRow.innerHTML = `
-      <td><input type="text" name="fabricant[]" /></td>
-      <td><input type="text" name="designation[]" /></td>
-      <td><input type="number" name="quantite[]" min="0" /></td>
-      <td><button type="button" class="remove-piece">Supprimer</button></td>
-    `;
-      piecesTableBody.appendChild(newRow);
-    });
-
-    // Supprimer une ligne de pièce
-    piecesTableBody.addEventListener("click", (event) => {
-      if (event.target.classList.contains("remove-piece")) {
-        const row = event.target.closest("tr");
-        piecesTableBody.removeChild(row);
-      }
-    });
-
     y = pdf.lastAutoTable.finalY + 10;
-    drawSectionLine();
 
-    pdf.text("Temps d'Intervention :", leftX, y);
+    // Temps d'Intervention
+    pdf.text("Temps d'Intervention :", 20, y);
     y += 5;
     pdf.autoTable({
       startY: y,
-      head: [["Technicien", "Date", "Nombre d'Heures"]],
-      body: interventions.map((i) => [i.technicien, i.date, i.heures]),
+      head: [["Technicien", "Date", "Horaires", "Nombre d'Heures"]],
+      body: interventions.map((i) => [
+        i.technicien,
+        i.date,
+        i.horaires,
+        i.heures,
+      ]),
       theme: "grid",
     });
-
-    form.addEventListener("submit", (event) => {
-      const techniciens = document.querySelectorAll(
-        "#intervention-table input[name='techniciens[]']"
-      );
-      let technicienRenseigne = false;
-
-      // Vérifier si au moins un champ technicien est rempli
-      techniciens.forEach((technicien) => {
-        if (technicien.value.trim() !== "") {
-          technicienRenseigne = true;
-        }
-      });
-
-      if (!technicienRenseigne) {
-        event.preventDefault();
-        alert("Vous devez renseigner au moins un technicien.");
-      }
-    });
-
     y = pdf.lastAutoTable.finalY + 10;
-    drawSectionLine();
 
-    pdf.text("Commentaires :", leftX, y);
+    // Commentaires
+    pdf.text("Commentaires :", 20, y);
     y += 10;
     const commentLines = pdf.splitTextToSize(commentaires, 170);
-    pdf.text(commentLines, leftX, y);
+    pdf.text(commentLines, 20, y);
     y += commentLines.length * 7 + 10;
-    drawSectionLine();
-
-    // Modification de la section Signatures
 
     // Signatures
-    pdf.text("Signatures :", leftX, y);
+    pdf.text("Signatures :", 20, y);
     y += 10;
 
-    const signatureRepresentant = canvasRepresentant.toDataURL("image/png");
-    const signatureAgent = canvasAgent.toDataURL("image/png");
+    // Signature du représentant
+    pdf.text("Représentant :", 20, y);
+    pdf.addImage(signatures.representant, "PNG", 20, y + 10, 80, 50);
 
-    const totalWidth = 170;
-    const signatureWidth = 80;
-    const spacing = 10;
-
-    // Calcul des positions X
-    const xRepresentant = leftX;
-    const xAgent = leftX + signatureWidth + spacing;
-
-    // Signature du représentant (à gauche)
-    pdf.text("Représentant :", xRepresentant, y);
-    pdf.text(
-      document.getElementById("representant").value,
-      xRepresentant + 50,
-      y
-    );
-    pdf.rect(xRepresentant, y + 10, signatureWidth, 50, "S"); // Cadre pour la signature
-    pdf.addImage(
-      signatureRepresentant,
-      "PNG",
-      xRepresentant,
-      y + 10,
-      signatureWidth,
-      50
-    );
-
-    // Signature de l'agent EDF (à droite)
-    pdf.text("Agent EDF :", xAgent, y);
-    pdf.text(document.getElementById("agent").value, xAgent + 50, y);
-    pdf.rect(xAgent, y + 10, signatureWidth, 50, "S"); // Cadre pour la signature
-    pdf.addImage(signatureAgent, "PNG", xAgent, y + 10, signatureWidth, 50);
+    // Signature de l'agent EDF
+    pdf.text("Agent EDF :", 120, y);
+    pdf.addImage(signatures.agent, "PNG", 120, y + 10, 80, 50);
 
     y += 70;
-    drawSectionLine();
 
-    // Photos
-    await ajouterPhotos(pdf, photos, leftX, y);
     pdf.save("bon_intervention.pdf");
-  }
-
-  async function ajouterPhotos(pdf, photos, leftX, startY) {
-    let y = startY;
-
-    for (const photo of photos) {
-      if (photo) {
-        const imgData = await lireImage(photo);
-        const maxWidth = 100;
-        const maxHeight = 100;
-
-        const img = new Image();
-        img.src = imgData;
-
-        await new Promise((resolve) => {
-          img.onload = () => {
-            let width = img.width;
-            let height = img.height;
-            const ratio = Math.min(maxWidth / width, maxHeight / height);
-            width *= ratio;
-            height *= ratio;
-
-            if (y + height > 280) {
-              pdf.addPage();
-              y = 20;
-            }
-
-            pdf.addImage(imgData, "JPEG", leftX, y, width, height);
-            y += height + 10;
-            resolve();
-          };
-        });
-      }
-    }
-  }
-
-  function lireImage(photo) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(photo);
-    });
   }
 
   function setupSignatureCanvas(canvasId, clearButtonId) {
@@ -317,41 +205,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    const startDrawing = (event) => {
+    canvas.addEventListener("mousedown", (e) => {
       isDrawing = true;
-      const pos = getPosition(event);
       context.beginPath();
-      context.moveTo(pos.x, pos.y);
-    };
+      context.moveTo(getPosition(e).x, getPosition(e).y);
+    });
 
-    const draw = (event) => {
+    canvas.addEventListener("mousemove", (e) => {
       if (!isDrawing) return;
-      const pos = getPosition(event);
+      const pos = getPosition(e);
       context.lineTo(pos.x, pos.y);
       context.stroke();
-    };
-
-    const stopDrawing = () => {
-      isDrawing = false;
-      context.closePath();
-    };
-
-    canvas.addEventListener("mousedown", startDrawing);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDrawing);
-
-    canvas.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      startDrawing(e);
     });
-    canvas.addEventListener("touchmove", (e) => {
-      e.preventDefault();
-      draw(e);
-    });
-    canvas.addEventListener("touchend", (e) => {
-      e.preventDefault();
-      stopDrawing(e);
-    });
+
+    canvas.addEventListener("mouseup", () => (isDrawing = false));
+    canvas.addEventListener("mouseleave", () => (isDrawing = false));
 
     document.getElementById(clearButtonId).addEventListener("click", () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
