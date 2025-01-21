@@ -219,6 +219,75 @@ document.addEventListener("DOMContentLoaded", () => {
         const canvas = document.getElementById(canvasId);
         const context = canvas.getContext("2d");
         let isDrawing = false;
+    
+        // Fonction pour obtenir la position relative dans le canvas
+        const getPosition = (event) => {
+            const rect = canvas.getBoundingClientRect();
+            if (event.touches && event.touches[0]) {
+                // Gestion des événements tactiles
+                return {
+                    x: event.touches[0].clientX - rect.left,
+                    y: event.touches[0].clientY - rect.top
+                };
+            } else {
+                // Gestion des événements de souris
+                return {
+                    x: event.clientX - rect.left,
+                    y: event.clientY - rect.top
+                };
+            }
+        };
+    
+        // Gestion des événements de dessin
+        const startDrawing = (event) => {
+            isDrawing = true;
+            const pos = getPosition(event);
+            context.beginPath();
+            context.moveTo(pos.x, pos.y);
+        };
+    
+        const draw = (event) => {
+            if (!isDrawing) return;
+            const pos = getPosition(event);
+            context.lineTo(pos.x, pos.y);
+            context.stroke();
+        };
+    
+        const stopDrawing = () => {
+            isDrawing = false;
+        };
+    
+        // Écouteurs pour la souris
+        canvas.addEventListener("mousedown", startDrawing);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("mouseleave", stopDrawing);
+    
+        // Écouteurs pour les écrans tactiles
+        canvas.addEventListener("touchstart", (e) => {
+            e.preventDefault(); // Éviter le défilement
+            startDrawing(e);
+        });
+        canvas.addEventListener("touchmove", (e) => {
+            e.preventDefault(); // Éviter le défilement
+            draw(e);
+        });
+        canvas.addEventListener("touchend", stopDrawing);
+        canvas.addEventListener("touchcancel", stopDrawing);
+    
+        // Bouton pour effacer le canvas
+        document.getElementById(clearButtonId).addEventListener("click", () => {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    
+        return canvas;
+    }
+    
+
+    function setupSignatureCanvas(canvasId, clearButtonId) {
+        const canvas = document.getElementById(canvasId);
+        const context = canvas.getContext("2d");
+        let isDrawing = false;
 
         const getPosition = (event) => {
             const rect = canvas.getBoundingClientRect();
@@ -258,5 +327,5 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.onerror = error => reject(error);
             reader.readAsDataURL(file);
         });
-    }
+    }   
 });
