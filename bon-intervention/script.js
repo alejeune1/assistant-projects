@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addPieceButton.addEventListener("click", () => {
         const newRow = document.createElement("tr");
+        newRow.style.backgroundColor = "#FFFFFF"; // Uniformiser avec fond blanc
         newRow.innerHTML = `
             <td><input type="text" name="fabricant[]" placeholder="Fabricant" /></td>
             <td><input type="text" name="designation[]" placeholder="Désignation" /></td>
@@ -35,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addTechnicianButton.addEventListener("click", () => {
         const newRow = document.createElement("tr");
+        newRow.style.backgroundColor = "#FFFFFF"; // Uniformiser avec fond blanc
         newRow.innerHTML = `
             <td><input type="text" name="techniciens[]" placeholder="Nom du technicien" /></td>
             <td><input type="date" name="date_intervention[]" /></td>
