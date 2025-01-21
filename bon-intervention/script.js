@@ -6,113 +6,84 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvasAgent = setupSignatureCanvas("signature-agent-canvas", "clear-agent");
 
     // Gestion des pièces fournies
-    const piecesTableBody = document.querySelector("#pieces-table tbody");
-    const addPieceButton = document.getElementById("add-piece");
-
-    addPieceButton.addEventListener("click", () => {
-        const newRow = document.createElement("tr");
-        newRow.style.backgroundColor = "#FFFFFF"; // Uniformiser avec fond blanc
-        newRow.innerHTML = `
+    manageDynamicTable(
+        "add-piece",
+        "#pieces-table tbody",
+        `
             <td><input type="text" name="fabricant[]" placeholder="Fabricant" /></td>
             <td><input type="text" name="designation[]" placeholder="Désignation" /></td>
             <td><input type="number" name="quantite[]" min="1" placeholder="Quantité" /></td>
-            <td><button type="button" class="remove-piece">Supprimer</button></td>
-        `;
-        piecesTableBody.appendChild(newRow);
-    });
-
-    piecesTableBody.addEventListener("click", (event) => {
-        if (event.target.classList.contains("remove-piece")) {
-            const row = event.target.closest("tr");
-            if (row) {
-                piecesTableBody.removeChild(row);
-            }
-        }
-    });
+            <td><button type="button" class="remove-row">Supprimer</button></td>
+        `
+    );
 
     // Gestion des intervenants
-    const interventionTableBody = document.querySelector("#intervention-table tbody");
-    const addTechnicianButton = document.getElementById("add-technician");
-
-    addTechnicianButton.addEventListener("click", () => {
-        const newRow = document.createElement("tr");
-        newRow.style.backgroundColor = "#FFFFFF"; // Uniformiser avec fond blanc
-        newRow.innerHTML = `
+    manageDynamicTable(
+        "add-technician",
+        "#intervention-table tbody",
+        `
             <td><input type="text" name="techniciens[]" placeholder="Nom du technicien" /></td>
             <td><input type="date" name="date_intervention[]" /></td>
             <td><input type="number" name="nbr_heures[]" min="1" placeholder="Heures" /></td>
-            <td><button type="button" class="remove-technicien">Supprimer</button></td>
-        `;
-        interventionTableBody.appendChild(newRow);
-    });
-
-    interventionTableBody.addEventListener("click", (event) => {
-        if (event.target.classList.contains("remove-technicien")) {
-            const row = event.target.closest("tr");
-            if (row) {
-                interventionTableBody.removeChild(row);
-            }
-        }
-    });
+            <td><button type="button" class="remove-row">Supprimer</button></td>
+        `
+    );
 
     // Soumission du formulaire et génération du PDF
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        const date = document.getElementById("date").value;
-        const chantier = document.getElementById("chantier").value;
-        const centrale = document.getElementById("centrale").value;
-        const entreprise = document.getElementById("entreprise").value;
-        const lieu = document.getElementById("lieu").value;
-        const description = document.getElementById("description").value;
-        const commentaires = document.getElementById("commentaires").value;
-
-        const representantNom = document.getElementById("representant").value;
-        const agentNom = document.getElementById("agent").value;
-
-        const pieces = Array.from(document.querySelectorAll("#pieces-table tbody tr")).map(row => {
-            const inputs = row.querySelectorAll("input");
-            return {
-                fabricant: inputs[0]?.value || "",
-                designation: inputs[1]?.value || "",
-                quantite: inputs[2]?.value || ""
-            };
-        });
-
-        const interventions = Array.from(document.querySelectorAll("#intervention-table tbody tr")).map(row => {
-            const inputs = row.querySelectorAll("input");
-            return {
-                technicien: inputs[0]?.value || "",
-                date: inputs[1]?.value || "",
-                heures: inputs[2]?.value || ""
-            };
-        });
-
-        const photos = document.getElementById("photos").files;
-
-        const signatures = {
-            representant: canvasRepresentant.toDataURL("image/png"),
-            agent: canvasAgent.toDataURL("image/png")
+        const data = {
+            date: document.getElementById("date").value,
+            chantier: document.getElementById("chantier").value,
+            centrale: document.getElementById("centrale").value,
+            entreprise: document.getElementById("entreprise").value,
+            lieu: document.getElementById("lieu").value,
+            description: document.getElementById("description").value,
+            commentaires: document.getElementById("commentaires").value,
+            representantNom: document.getElementById("representant").value,
+            agentNom: document.getElementById("agent").value,
+            pieces: collectTableData("#pieces-table tbody"),
+            interventions: collectTableData("#intervention-table tbody"),
+            photos: document.getElementById("photos").files,
+            signatures: {
+                representant: canvasRepresentant.toDataURL("image/png"),
+                agent: canvasAgent.toDataURL("image/png")
+            }
         };
 
-        await genererPDF(
-            date,
-            chantier,
-            centrale,
-            entreprise,
-            lieu,
-            description,
-            pieces,
-            interventions,
-            photos,
-            commentaires,
-            representantNom,
-            agentNom,
-            signatures
-        );
+        await genererPDF(data);
     });
 
-    async function genererPDF(date, chantier, centrale, entreprise, lieu, description, pieces, interventions, photos, commentaires, representantNom, agentNom, signatures) {
+    // Fonction pour gérer les ajouts/suppressions dynamiques des lignes des tableaux
+    function manageDynamicTable(addButtonId, tableBodySelector, rowHTML) {
+        const tableBody = document.querySelector(tableBodySelector);
+        const addButton = document.getElementById(addButtonId);
+
+        addButton.addEventListener("click", () => {
+            const newRow = document.createElement("tr");
+            newRow.style.backgroundColor = "#FFFFFF";
+            newRow.innerHTML = rowHTML;
+            tableBody.appendChild(newRow);
+        });
+
+        tableBody.addEventListener("click", (event) => {
+            if (event.target.classList.contains("remove-row")) {
+                const row = event.target.closest("tr");
+                if (row) tableBody.removeChild(row);
+            }
+        });
+    }
+
+    // Fonction pour collecter les données des tableaux dynamiques
+    function collectTableData(tableBodySelector) {
+        return Array.from(document.querySelectorAll(`${tableBodySelector} tr`)).map(row => {
+            return Array.from(row.querySelectorAll("input")).map(input => input.value || "");
+        });
+    }
+
+    // Fonction de génération du PDF
+    async function genererPDF(data) {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF();
 
@@ -136,22 +107,22 @@ document.addEventListener("DOMContentLoaded", () => {
             pdf.text("Informations Générales", 20, y);
             y += 10;
             pdf.setTextColor("#000000");
-            pdf.text(`Date : ${date}`, 20, y);
+            pdf.text(`Date : ${data.date}`, 20, y);
             y += 10;
-            pdf.text(`Nom du Chantier : ${chantier}`, 20, y);
+            pdf.text(`Nom du Chantier : ${data.chantier}`, 20, y);
             y += 10;
-            pdf.text(`Nom de la Centrale : ${centrale}`, 20, y);
+            pdf.text(`Nom de la Centrale : ${data.centrale}`, 20, y);
             y += 10;
-            pdf.text(`Nom de l'Entreprise : ${entreprise}`, 20, y);
+            pdf.text(`Nom de l'Entreprise : ${data.entreprise}`, 20, y);
             y += 10;
-            pdf.text(`Lieu d'Intervention : ${lieu}`, 20, y);
+            pdf.text(`Lieu d'Intervention : ${data.lieu}`, 20, y);
             y += 15;
 
             pdf.setTextColor(edfBlue);
             pdf.text("Description des Travaux", 20, y);
             y += 10;
             pdf.setTextColor("#000000");
-            const descLines = pdf.splitTextToSize(description, 170);
+            const descLines = pdf.splitTextToSize(data.description, 170);
             pdf.text(descLines, 20, y);
             y += descLines.length * 7 + 10;
 
@@ -161,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
             pdf.autoTable({
                 startY: y,
                 head: [["Fabricant", "Désignation", "Quantité"]],
-                body: pieces.map(p => [p.fabricant, p.designation, p.quantite]),
+                body: data.pieces,
                 styles: { fillColor: edfBlue, textColor: white, lineWidth: 0.1 },
                 alternateRowStyles: { fillColor: white, textColor: edfBlue }
             });
@@ -173,17 +144,17 @@ document.addEventListener("DOMContentLoaded", () => {
             pdf.autoTable({
                 startY: y,
                 head: [["Technicien", "Date", "Nombre d'Heures"]],
-                body: interventions.map(i => [i.technicien, i.date, i.heures]),
+                body: data.interventions,
                 styles: { fillColor: edfBlue, textColor: white, lineWidth: 0.1 },
                 alternateRowStyles: { fillColor: white, textColor: edfBlue }
             });
             y = pdf.lastAutoTable.finalY + 10;
 
-            if (photos.length > 0) {
+            if (data.photos.length > 0) {
                 pdf.setTextColor(edfBlue);
                 pdf.text("Photos de l'Intervention", 20, y);
                 y += 10;
-                for (const photo of photos) {
+                for (const photo of data.photos) {
                     const imgData = await toBase64(photo);
                     pdf.addImage(imgData, "JPEG", 20, y, 80, 80);
                     y += 90;
@@ -194,10 +165,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            addSignatures(pdf, representantNom, agentNom, signatures, y);
+            addSignatures(pdf, data.representantNom, data.agentNom, data.signatures, y);
         };
     }
 
+    // Fonction pour ajouter les signatures dans le PDF
     function addSignatures(pdf, representantNom, agentNom, signatures, startY) {
         const y = startY + 20;
 
@@ -215,103 +187,60 @@ document.addEventListener("DOMContentLoaded", () => {
         pdf.save("bon_intervention.pdf");
     }
 
+    // Fonction pour initialiser un canvas avec support tactile et souris
     function setupSignatureCanvas(canvasId, clearButtonId) {
         const canvas = document.getElementById(canvasId);
         const context = canvas.getContext("2d");
         let isDrawing = false;
-    
-        // Fonction pour obtenir la position relative dans le canvas
+
         const getPosition = (event) => {
             const rect = canvas.getBoundingClientRect();
             if (event.touches && event.touches[0]) {
-                // Gestion des événements tactiles
                 return {
                     x: event.touches[0].clientX - rect.left,
                     y: event.touches[0].clientY - rect.top
                 };
             } else {
-                // Gestion des événements de souris
                 return {
                     x: event.clientX - rect.left,
                     y: event.clientY - rect.top
                 };
             }
         };
-    
-        // Gestion des événements de dessin
+
         const startDrawing = (event) => {
             isDrawing = true;
             const pos = getPosition(event);
             context.beginPath();
             context.moveTo(pos.x, pos.y);
         };
-    
+
         const draw = (event) => {
             if (!isDrawing) return;
             const pos = getPosition(event);
             context.lineTo(pos.x, pos.y);
             context.stroke();
         };
-    
+
         const stopDrawing = () => {
             isDrawing = false;
         };
-    
-        // Écouteurs pour la souris
+
         canvas.addEventListener("mousedown", startDrawing);
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", stopDrawing);
         canvas.addEventListener("mouseleave", stopDrawing);
-    
-        // Écouteurs pour les écrans tactiles
+
         canvas.addEventListener("touchstart", (e) => {
-            e.preventDefault(); // Éviter le défilement
+            e.preventDefault();
             startDrawing(e);
         });
         canvas.addEventListener("touchmove", (e) => {
-            e.preventDefault(); // Éviter le défilement
+            e.preventDefault();
             draw(e);
         });
         canvas.addEventListener("touchend", stopDrawing);
         canvas.addEventListener("touchcancel", stopDrawing);
-    
-        // Bouton pour effacer le canvas
-        document.getElementById(clearButtonId).addEventListener("click", () => {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-        });
-    
-        return canvas;
-    }
-    
-
-    function setupSignatureCanvas(canvasId, clearButtonId) {
-        const canvas = document.getElementById(canvasId);
-        const context = canvas.getContext("2d");
-        let isDrawing = false;
-
-        const getPosition = (event) => {
-            const rect = canvas.getBoundingClientRect();
-            return {
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top
-            };
-        };
-
-        canvas.addEventListener("mousedown", (e) => {
-            isDrawing = true;
-            context.beginPath();
-            context.moveTo(getPosition(e).x, getPosition(e).y);
-        });
-
-        canvas.addEventListener("mousemove", (e) => {
-            if (!isDrawing) return;
-            const pos = getPosition(e);
-            context.lineTo(pos.x, pos.y);
-            context.stroke();
-        });
-
-        canvas.addEventListener("mouseup", () => (isDrawing = false));
-        canvas.addEventListener("mouseleave", () => (isDrawing = false));
 
         document.getElementById(clearButtonId).addEventListener("click", () => {
             context.clearRect(0, 0, canvas.width, canvas.height);
@@ -320,6 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return canvas;
     }
 
+    // Convertir un fichier en base64
     function toBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -327,5 +257,5 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.onerror = error => reject(error);
             reader.readAsDataURL(file);
         });
-    }   
+    }
 });
