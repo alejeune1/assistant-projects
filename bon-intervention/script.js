@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     takePhotoButton.addEventListener("click", async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
+                video: { facingMode: "environment" }
             });
             camera.srcObject = stream;
             camera.style.display = "block";
@@ -69,22 +69,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Enregistrer une photo prise avec la caméra
     savePhotoButton.addEventListener("click", () => {
-        // Augmenter la résolution du canvas
-        cameraCanvas.width = 1920; // Largeur haute définition
-        cameraCanvas.height = 1080; // Hauteur haute définition
-        cameraContext.drawImage(camera, 0, 0, cameraCanvas.width, cameraCanvas.height);
+        try {
+            // Ajuster le canvas pour capturer la photo en haute qualité
+            cameraCanvas.width = camera.videoWidth || 1920; // Largeur réelle du flux vidéo
+            cameraCanvas.height = camera.videoHeight || 1080; // Hauteur réelle du flux vidéo
+            cameraContext.drawImage(camera, 0, 0, cameraCanvas.width, cameraCanvas.height);
 
-        // Arrêter la caméra après la capture
-        const stream = camera.srcObject;
-        if (stream) {
-            stream.getTracks().forEach((track) => track.stop());
+            const photoData = cameraCanvas.toDataURL("image/png"); // Convertir la photo en base64
+            addPhotoToPreview(photoData); // Ajouter la photo à l'aperçu
+
+            // Arrêter la caméra après la capture
+            const stream = camera.srcObject;
+            if (stream) {
+                stream.getTracks().forEach((track) => track.stop());
+            }
+            camera.style.display = "none";
+            savePhotoButton.style.display = "none";
+        } catch (error) {
+            console.error("Erreur lors de l'enregistrement de la photo :", error);
         }
-        camera.style.display = "none";
-        savePhotoButton.style.display = "none";
     });
 
-       // Ajouter une photo à l'aperçu avec un bouton "Supprimer"
-       function addPhotoToPreview(photoData) {
+        // Ajouter une photo à l'aperçu avec un bouton "Supprimer"
+    // Ajouter une photo à l'aperçu avec un bouton "Supprimer"
+    function addPhotoToPreview(photoData) {
         const photoContainer = document.createElement("div");
         photoContainer.style.display = "inline-block";
         photoContainer.style.margin = "5px";
