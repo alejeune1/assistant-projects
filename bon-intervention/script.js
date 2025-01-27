@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     takePhotoButton.addEventListener("click", async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
+                video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
             });
             camera.srcObject = stream;
             camera.style.display = "block";
@@ -69,9 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Enregistrer une photo prise avec la caméra
     savePhotoButton.addEventListener("click", () => {
+        // Augmenter la résolution du canvas
+        cameraCanvas.width = 1920; // Largeur haute définition
+        cameraCanvas.height = 1080; // Hauteur haute définition
         cameraContext.drawImage(camera, 0, 0, cameraCanvas.width, cameraCanvas.height);
-        const photoData = cameraCanvas.toDataURL("image/png");
-        addPhotoToPreview(photoData);
 
         // Arrêter la caméra après la capture
         const stream = camera.srcObject;
