@@ -82,13 +82,37 @@ document.addEventListener("DOMContentLoaded", () => {
         savePhotoButton.style.display = "none";
     });
 
-    // Ajouter une photo à l'aperçu
-    function addPhotoToPreview(photoData) {
+       // Ajouter une photo à l'aperçu avec un bouton "Supprimer"
+       function addPhotoToPreview(photoData) {
+        const photoContainer = document.createElement("div");
+        photoContainer.style.display = "inline-block";
+        photoContainer.style.margin = "5px";
+        photoContainer.style.position = "relative";
+
         const img = document.createElement("img");
         img.src = photoData;
         img.style.width = "100px";
-        img.style.margin = "5px";
-        photoPreviewContainer.appendChild(img);
+        img.style.border = "1px solid #ccc";
+        photoContainer.appendChild(img);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Supprimer";
+        deleteButton.style.position = "absolute";
+        deleteButton.style.top = "5px";
+        deleteButton.style.right = "5px";
+        deleteButton.style.backgroundColor = "#ff5555";
+        deleteButton.style.color = "#fff";
+        deleteButton.style.border = "none";
+        deleteButton.style.cursor = "pointer";
+        deleteButton.style.padding = "5px";
+        deleteButton.style.fontSize = "10px";
+        deleteButton.addEventListener("click", () => {
+            photoPreviewContainer.removeChild(photoContainer);
+            photoList = photoList.filter((photo) => photo !== photoData); // Retirer la photo de la liste
+        });
+
+        photoContainer.appendChild(deleteButton);
+        photoPreviewContainer.appendChild(photoContainer);
         photoList.push(photoData); // Ajouter à la liste des photos pour le PDF
     }
 
