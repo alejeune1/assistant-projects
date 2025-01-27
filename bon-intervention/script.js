@@ -53,15 +53,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Gestion de la caméra pour prendre une photo
+    // Gestion de la caméra pour prendre une photo (caméra dorsale)
     takePhotoButton.addEventListener("click", async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
             camera.srcObject = stream;
             camera.style.display = "block";
             savePhotoButton.style.display = "inline-block";
         } catch (error) {
-            console.error("Impossible d'accéder à la caméra :", error);
+            console.error("Impossible d'accéder à la caméra dorsale :", error);
         }
     });
 
