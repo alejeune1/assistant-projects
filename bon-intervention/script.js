@@ -136,7 +136,6 @@ document.addEventListener("DOMContentLoaded", () => {
             entreprise: document.getElementById("entreprise").value,
             lieu: document.getElementById("lieu").value,
             description: document.getElementById("description").value,
-            commentaires: document.getElementById("commentaires").value,
             representantNom: document.getElementById("representant").value,
             agentNom: document.getElementById("agent").value,
             pieces: collectTableData("#pieces-table tbody"),
