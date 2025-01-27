@@ -105,6 +105,12 @@
         />
         <div id="photo-preview"></div>
 
+        <!-- Nouveau bouton pour prendre une photo en direct -->
+        <button type="button" id="take-photo">Prendre une photo</button>
+        <video id="camera" width="300" height="200" autoplay style="display: none; border: 1px solid black;"></video>
+        <canvas id="camera-canvas" width="300" height="200" style="display: none;"></canvas>
+        <button type="button" id="save-photo" style="display: none;">Enregistrer la photo</button>
+
         <h3>Signatures</h3>
         <div class="signature-group">
           <label for="representant">Nom de l'Entreprise :</label>

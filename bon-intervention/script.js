@@ -29,6 +29,67 @@ document.addEventListener("DOMContentLoaded", () => {
         `
     );
 
+    // Gestion des photos
+    const photosInput = document.getElementById("photos");
+    const photoPreviewContainer = document.getElementById("photo-preview");
+    const takePhotoButton = document.getElementById("take-photo");
+    const savePhotoButton = document.getElementById("save-photo");
+    const camera = document.getElementById("camera");
+    const cameraCanvas = document.getElementById("camera-canvas");
+    const cameraContext = cameraCanvas.getContext("2d");
+    let photoList = []; // Liste des photos (caméra + galerie)
+
+    // Gestion des photos ajoutées depuis la galerie
+    photosInput.addEventListener("change", (event) => {
+        const files = Array.from(event.target.files);
+        files.forEach((file) => {
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    addPhotoToPreview(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    // Gestion de la caméra pour prendre une photo
+    takePhotoButton.addEventListener("click", async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            camera.srcObject = stream;
+            camera.style.display = "block";
+            savePhotoButton.style.display = "inline-block";
+        } catch (error) {
+            console.error("Impossible d'accéder à la caméra :", error);
+        }
+    });
+
+    // Enregistrer une photo prise avec la caméra
+    savePhotoButton.addEventListener("click", () => {
+        cameraContext.drawImage(camera, 0, 0, cameraCanvas.width, cameraCanvas.height);
+        const photoData = cameraCanvas.toDataURL("image/png");
+        addPhotoToPreview(photoData);
+
+        // Arrêter la caméra après la capture
+        const stream = camera.srcObject;
+        if (stream) {
+            stream.getTracks().forEach((track) => track.stop());
+        }
+        camera.style.display = "none";
+        savePhotoButton.style.display = "none";
+    });
+
+    // Ajouter une photo à l'aperçu
+    function addPhotoToPreview(photoData) {
+        const img = document.createElement("img");
+        img.src = photoData;
+        img.style.width = "100px";
+        img.style.margin = "5px";
+        photoPreviewContainer.appendChild(img);
+        photoList.push(photoData); // Ajouter à la liste des photos pour le PDF
+    }
+
     // Soumission du formulaire et génération du PDF
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -45,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
             agentNom: document.getElementById("agent").value,
             pieces: collectTableData("#pieces-table tbody"),
             interventions: collectTableData("#intervention-table tbody"),
-            photos: document.getElementById("photos").files,
+            photos: photoList, // Utilisation des photos capturées et sélectionnées
             signatures: {
                 representant: canvasRepresentant.toDataURL("image/png"),
                 agent: canvasAgent.toDataURL("image/png")
@@ -150,18 +211,13 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             y = pdf.lastAutoTable.finalY + 10;
 
-            if (data.photos.length > 0) {
-                pdf.setTextColor(edfBlue);
-                pdf.text("Photos de l'Intervention", 20, y);
-                y += 10;
-                for (const photo of data.photos) {
-                    const imgData = await toBase64(photo);
-                    pdf.addImage(imgData, "JPEG", 20, y, 80, 80);
-                    y += 90;
-                    if (y > 270) {
-                        pdf.addPage();
-                        y = 20;
-                    }
+            // Gestion des photos
+            for (const photo of data.photos) {
+                pdf.addImage(photo, "JPEG", 20, y, 80, 80);
+                y += 90;
+                if (y > 270) {
+                    pdf.addPage();
+                    y = 20;
                 }
             }
 
