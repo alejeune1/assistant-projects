@@ -5,6 +5,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvasRepresentant = setupSignatureCanvas("signature-representant-canvas", "clear-representant");
     const canvasAgent = setupSignatureCanvas("signature-agent-canvas", "clear-agent");
 
+    // Fonction pour gérer les ajouts/suppressions dynamiques des lignes des tableaux
+    function manageDynamicTable(addButtonId, tableBodySelector, rowHTML) {
+    const tableBody = document.querySelector(tableBodySelector);
+    const addButton = document.getElementById(addButtonId);
+
+        addButton.addEventListener("click", () => {
+        const newRow = document.createElement("tr");
+        newRow.style.backgroundColor = "#FFFFFF";
+        newRow.innerHTML = rowHTML;
+        tableBody.appendChild(newRow);
+        });
+
+        tableBody.addEventListener("click", (event) => {
+        if (event.target.classList.contains("remove-row")) {
+            const row = event.target.closest("tr");
+            if (row) tableBody.removeChild(row);
+            }
+        });
+    }
+
     // Gestion des pièces fournies
     manageDynamicTable(
         "add-piece",
@@ -37,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const camera = document.getElementById("camera");
     const cameraCanvas = document.getElementById("camera-canvas");
     const cameraContext = cameraCanvas.getContext("2d");
-    let photoList = []; // Liste des photos (caméra + galerie)
+    let photoList = []; // Liste des photos (caméra + galerie) avec libellés
 
     // Gestion des photos ajoutées depuis la galerie
     photosInput.addEventListener("change", (event) => {
@@ -70,7 +90,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Enregistrer une photo prise avec la caméra
     savePhotoButton.addEventListener("click", () => {
         try {
-            // Ajuster le canvas pour capturer la photo en haute qualité
             cameraCanvas.width = camera.videoWidth || 1920; // Largeur réelle du flux vidéo
             cameraCanvas.height = camera.videoHeight || 1080; // Hauteur réelle du flux vidéo
             cameraContext.drawImage(camera, 0, 0, cameraCanvas.width, cameraCanvas.height);
@@ -90,8 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-        // Ajouter une photo à l'aperçu avec un bouton "Supprimer"
-    // Ajouter une photo à l'aperçu avec un bouton "Supprimer"
+    // Ajouter une photo à l'aperçu avec un champ "libellé" et un bouton "Supprimer"
     function addPhotoToPreview(photoData) {
         const photoContainer = document.createElement("div");
         photoContainer.style.display = "inline-block";
@@ -103,6 +121,14 @@ document.addEventListener("DOMContentLoaded", () => {
         img.style.width = "100px";
         img.style.border = "1px solid #ccc";
         photoContainer.appendChild(img);
+
+        // Champ de saisie pour le libellé
+        const labelInput = document.createElement("input");
+        labelInput.type = "text";
+        labelInput.placeholder = "Libellé de la photo";
+        labelInput.style.display = "block";
+        labelInput.style.marginTop = "5px";
+        photoContainer.appendChild(labelInput);
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Supprimer";
@@ -117,12 +143,14 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteButton.style.fontSize = "10px";
         deleteButton.addEventListener("click", () => {
             photoPreviewContainer.removeChild(photoContainer);
-            photoList = photoList.filter((photo) => photo !== photoData); // Retirer la photo de la liste
+            photoList = photoList.filter((photo) => photo.data !== photoData); // Retirer la photo et son libellé
         });
 
         photoContainer.appendChild(deleteButton);
         photoPreviewContainer.appendChild(photoContainer);
-        photoList.push(photoData); // Ajouter à la liste des photos pour le PDF
+
+        // Ajouter la photo et son libellé dans la liste
+        photoList.push({ data: photoData, label: labelInput });
     }
 
     // Soumission du formulaire et génération du PDF
@@ -140,7 +168,10 @@ document.addEventListener("DOMContentLoaded", () => {
             agentNom: document.getElementById("agent").value,
             pieces: collectTableData("#pieces-table tbody"),
             interventions: collectTableData("#intervention-table tbody"),
-            photos: photoList, // Utilisation des photos capturées et sélectionnées
+            photos: photoList.map((photo) => ({
+                data: photo.data,
+                label: photo.label.value || "Sans libellé"
+            })), // Photos avec libellés
             signatures: {
                 representant: canvasRepresentant.toDataURL("image/png"),
                 agent: canvasAgent.toDataURL("image/png")
@@ -150,26 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
         await genererPDF(data);
     });
 
-    // Fonction pour gérer les ajouts/suppressions dynamiques des lignes des tableaux
-    function manageDynamicTable(addButtonId, tableBodySelector, rowHTML) {
-        const tableBody = document.querySelector(tableBodySelector);
-        const addButton = document.getElementById(addButtonId);
-
-        addButton.addEventListener("click", () => {
-            const newRow = document.createElement("tr");
-            newRow.style.backgroundColor = "#FFFFFF";
-            newRow.innerHTML = rowHTML;
-            tableBody.appendChild(newRow);
-        });
-
-        tableBody.addEventListener("click", (event) => {
-            if (event.target.classList.contains("remove-row")) {
-                const row = event.target.closest("tr");
-                if (row) tableBody.removeChild(row);
-            }
-        });
-    }
-
     // Fonction pour collecter les données des tableaux dynamiques
     function collectTableData(tableBodySelector) {
         return Array.from(document.querySelectorAll(`${tableBodySelector} tr`)).map(row => {
@@ -177,87 +188,102 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Fonction de génération du PDF
-    async function genererPDF(data) {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
+    // Charger le logo EDF en Base64 avant de générer le PDF
+function loadLogo(callback) {
+    const logo = new Image();
+    logo.src = "EDF.png"; // Vérifiez que l'image est bien à cet emplacement
+    logo.crossOrigin = "Anonymous"; // Évite les problèmes de CORS
 
-        const edfBlue = "#003366";
-        const white = "#FFFFFF";
+    logo.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = logo.width;
+        canvas.height = logo.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(logo, 0, 0);
+        const logoBase64 = canvas.toDataURL("image/png"); // Convertir en Base64
+        callback(logoBase64);
+    };
 
-        const logo = new Image();
-        logo.src = "EDF.png";
+    logo.onerror = function () {
+        console.error("Erreur lors du chargement du logo EDF");
+        callback(null);
+    };
+}
 
-        logo.onload = async () => {
-            pdf.addImage(logo, "PNG", 10, 10, 25, 15);
 
-            pdf.setFontSize(16);
-            pdf.setTextColor(edfBlue);
-            pdf.text("BON D'INTERVENTION", 105, 20, { align: "center" });
+async function genererPDF(data) {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
 
-            pdf.setFontSize(12);
-            let y = 30;
+    loadLogo(function (logoBase64) {
+        if (logoBase64) {
+            pdf.addImage(logoBase64, "PNG", 10, 10, 25, 15);
+        } else {
+            console.warn("Le logo EDF ne sera pas ajouté au PDF.");
+        }
 
-            pdf.setTextColor(edfBlue);
-            pdf.text("Informations Générales", 20, y);
-            y += 10;
-            pdf.setTextColor("#000000");
-            pdf.text(`Date : ${data.date}`, 20, y);
-            y += 10;
-            pdf.text(`Nom du Chantier : ${data.chantier}`, 20, y);
-            y += 10;
-            pdf.text(`Nom de la Centrale : ${data.centrale}`, 20, y);
-            y += 10;
-            pdf.text(`Nom de l'Entreprise : ${data.entreprise}`, 20, y);
-            y += 10;
-            pdf.text(`Lieu d'Intervention : ${data.lieu}`, 20, y);
-            y += 15;
+        pdf.setFontSize(16);
+        pdf.setTextColor("#003366");
+        pdf.text("BON D'INTERVENTION", 105, 20, { align: "center" });
 
-            pdf.setTextColor(edfBlue);
-            pdf.text("Description des Travaux", 20, y);
-            y += 10;
-            pdf.setTextColor("#000000");
-            const descLines = pdf.splitTextToSize(data.description, 170);
-            pdf.text(descLines, 20, y);
-            y += descLines.length * 7 + 10;
+        pdf.setFontSize(12);
+        let y = 30;
 
-            pdf.setTextColor(edfBlue);
-            pdf.text("Désignations des Pièces Fournies", 20, y);
-            y += 5;
-            pdf.autoTable({
-                startY: y,
-                head: [["Fabricant", "Désignation", "Quantité"]],
-                body: data.pieces,
-                styles: { fillColor: edfBlue, textColor: white, lineWidth: 0.1 },
-                alternateRowStyles: { fillColor: white, textColor: edfBlue }
-            });
-            y = pdf.lastAutoTable.finalY + 10;
+        pdf.text("Informations Générales", 20, y);
+        y += 10;
+        pdf.text(`Date : ${data.date}`, 20, y);
+        y += 10;
+        pdf.text(`Nom du Chantier : ${data.chantier}`, 20, y);
+        y += 10;
+        pdf.text(`Nom de la Centrale : ${data.centrale}`, 20, y);
+        y += 10;
+        pdf.text(`Nom de l'Entreprise : ${data.entreprise}`, 20, y);
+        y += 10;
+        pdf.text(`Lieu d'Intervention : ${data.lieu}`, 20, y);
+        y += 15;
 
-            pdf.setTextColor(edfBlue);
-            pdf.text("Temps d'Intervention", 20, y);
-            y += 5;
-            pdf.autoTable({
-                startY: y,
-                head: [["Technicien", "Date", "Nombre d'Heures"]],
-                body: data.interventions,
-                styles: { fillColor: edfBlue, textColor: white, lineWidth: 0.1 },
-                alternateRowStyles: { fillColor: white, textColor: edfBlue }
-            });
-            y = pdf.lastAutoTable.finalY + 10;
+        pdf.setTextColor("#003366");
+        pdf.text("Description des Travaux", 20, y);
+        y += 10;
+        pdf.setTextColor("#000000");
+        const descLines = pdf.splitTextToSize(data.description, 170);
+        pdf.text(descLines, 20, y);
+        y += descLines.length * 7 + 10;
 
-            // Gestion des photos
-            for (const photo of data.photos) {
-                pdf.addImage(photo, "JPEG", 20, y, 80, 80);
-                y += 90;
-                if (y > 270) {
-                    pdf.addPage();
-                    y = 20;
-                }
+        pdf.setTextColor("#003366");
+        pdf.text("Désignations des Pièces Fournies", 20, y);
+        y += 5;
+        pdf.autoTable({
+            startY: y,
+            head: [["Fabricant", "Désignation", "Quantité"]],
+            body: data.pieces
+        });
+        y = pdf.lastAutoTable.finalY + 10;
+
+        pdf.text("Temps d'Intervention", 20, y);
+        y += 5;
+        pdf.autoTable({
+            startY: y,
+            head: [["Technicien", "Date", "Nombre d'Heures"]],
+            body: data.interventions
+        });
+        y = pdf.lastAutoTable.finalY + 10;
+
+        // Ajout des photos avec libellé
+        data.photos.forEach((photo) => {
+            pdf.addImage(photo.data, "JPEG", 20, y, 80, 80);
+            pdf.text(photo.label || "Sans libellé", 20, y + 85);
+            y += 100;
+            if (y > 270) {
+                pdf.addPage();
+                y = 20;
             }
+        });
 
-            addSignatures(pdf, data.representantNom, data.agentNom, data.signatures, y);
-        };
-    }
+        addSignatures(pdf, data.representantNom, data.agentNom, data.signatures, y);
+    });
+}
+
 
     // Fonction pour ajouter les signatures dans le PDF
     function addSignatures(pdf, representantNom, agentNom, signatures, startY) {
@@ -337,15 +363,5 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         return canvas;
-    }
-
-    // Convertir un fichier en base64
-    function toBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-            reader.readAsDataURL(file);
-        });
     }
 });
