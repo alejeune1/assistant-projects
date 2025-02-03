@@ -27,28 +27,28 @@
         <label for="endDate">Date fin : *</label>
         <input type="date" id="endDate" required />
 
-        <label for="summary">Description du projet :</label>
-        <textarea id="summary" rows="4"></textarea>
-
-        <h3>Historique</h3>
-        <label for="historique">Date d'application :</label>
+        <label for="summary">Description du projet : *</label>
+        <textarea id="summary" rows="4" required></textarea>
+        
+        <h3>Historique *</h3>
+        <label for="historique">Date d'application : </label>
         <input type="date" id="historique" required />
-
-        <h3>Photos</h3>
+        
+        <h3>Photos *</h3>
         <div id="photosContainer">
           <div class="photoGroup">
-            <label>Ajouter des photos :</label>
-            <input type="file" class="photoInput" accept="image/*" multiple />
-            <label>Catégorie :</label>
-            <select class="photoCategory">
+            <label>Ajouter des photos : </label>
+            <input type="file" class="photoInput" accept="image/*" multiple required />
+            <label>Catégorie : </label>
+            <select class="photoCategory" required>
               <option value="infosCommandes">Infos commandes</option>
               <option value="photos">Photos</option>
             </select>
           </div>
         </div>
         <button type="button" id="addPhotoGroup">Ajouter un groupe de photos</button>
-
-        <button type="button" id="generatePDF">Générer PDF</button>
+        
+        <button type="button" id="generatePDF">Générer PDF</button>        
       </form>
     </div>
     <script src="script.js"></script>

@@ -8,10 +8,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     photoGroup.className = "photoGroup";
 
     photoGroup.innerHTML = `
-      <label>Ajouter des photos :</label>
-      <input type="file" class="photoInput" accept="image/*" multiple />
-      <label>Catégorie :</label>
-      <select class="photoCategory">
+      <label>Ajouter des photos : *</label>
+      <input type="file" class="photoInput" accept="image/*" multiple required />
+      <label>Catégorie : *</label>
+      <select class="photoCategory" required>
+        <option value="">-- Sélectionner --</option>
         <option value="infosCommandes">Infos commandes</option>
         <option value="photos">Photos</option>
       </select>
@@ -26,6 +27,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   generatePDFBtn.addEventListener("click", async () => {
+    if (!validateForm()) {
+      alert("⚠️ Veuillez remplir tous les champs obligatoires avant de générer le PDF !");
+      return;
+    }
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
     let y = 25;
@@ -33,15 +39,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pageHeight = 297;
 
     try {
-      const logoBase64 = await toDataURL("EDF.png").catch(() => {
-        console.warn("⚠️ Impossible de charger 'EDF.png'. Vérifiez le chemin du fichier.");
-        return null;
+      // ✅ Correction du logo EDF
+      const logo = new Image();
+      logo.src = "EDF.png";
+      await new Promise((resolve, reject) => {
+        logo.onload = () => {
+          pdf.addImage(logo, "PNG", 10, 10, 30, 20);
+          resolve();
+        };
+        logo.onerror = () => {
+          console.warn("⚠️ Impossible de charger 'EDF.png'. Vérifiez le chemin du fichier.");
+          resolve();
+        };
       });
 
-      if (logoBase64) {
-        pdf.addImage(logoBase64, "PNG", 10, 10, 30, 20);
-        y += 25;
-      }
+      y += 25;
 
       pdf.setFontSize(18);
       pdf.setTextColor("#003366");
@@ -106,61 +118,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // ✅ Validation des champs obligatoires
+  function validateForm() {
+    let isValid = true;
+    document.querySelectorAll("input[required], textarea[required], select[required]").forEach((input) => {
+      if (!input.value || (input.type === "file" && input.files.length === 0)) {
+        input.style.border = "2px solid red"; // Met une bordure rouge si champ vide
+        isValid = false;
+      } else {
+        input.style.border = ""; // Supprime la bordure rouge si champ rempli
+      }
+    });
+    return isValid;
+  }
+
   function addSection(pdf, title, y) {
     pdf.setTextColor("#003366");
     pdf.setFontSize(14);
     pdf.text(title, 20, y);
     pdf.setTextColor(0, 0, 0);
     pdf.line(20, y + 2, 190, y + 2);
-    return y + 15; // Augmenter l'espace après les titres
+    return y + 15;
   }
 
   function addText(pdf, text, y) {
-  pdf.setFontSize(12);
-  pdf.text(text, 20, y);
-  return y + 10; // Espacement un peu plus grand entre les textes
-  }
-
-  async function addImagesWithTitle(pdf, title, images, y) {
-    y = addSection(pdf, title, y);
-
-    const maxWidth = 130;
-    const maxHeight = 90;
-    const margin = 20;
-    const pageHeight = 297;
-
-    for (const image of images) {
-      try {
-        const imgData = await toDataURL(image);
-        const img = new Image();
-        img.src = imgData;
-
-        await new Promise((resolve) => {
-          img.onload = function () {
-            let imgWidth = img.width;
-            let imgHeight = img.height;
-            const scale = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
-            imgWidth *= scale;
-            imgHeight *= scale;
-
-            // Vérifier si l'image peut rentrer sous le titre sans être trop éloignée
-            if (y + imgHeight > pageHeight - margin) {
-              pdf.addPage();
-              y = margin;
-              y = addSection(pdf, title, y); // Réinsérer le titre sur la nouvelle page
-            }
-
-            pdf.addImage(imgData, "JPEG", margin, y, imgWidth, imgHeight);
-            y += imgHeight + 10;
-
-            resolve();
-          };
-        });
-      } catch (error) {
-        console.error("Erreur de conversion d'image :", error);
-      }
-    }
-
+    pdf.setFontSize(12);
+    pdf.text(text, 20, y);
     return y + 10;
   }
 
@@ -185,26 +168,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                     imgWidth *= scale;
                     imgHeight *= scale;
 
-                    // Vérifier si l'image peut rester sur la même page
                     if (y + imgHeight + 20 > pageHeight - margin) {
                         pdf.addPage();
                         y = margin + 10;
 
-                        // Ajouter le titre seulement si l'image passe à une nouvelle page
                         if (!titleAdded) {
                             y = addSection(pdf, title, y);
                             titleAdded = true;
                         }
                     }
 
-                    // Ajouter le titre avant la première image du groupe uniquement
                     if (!titleAdded) {
                         y = addSection(pdf, title, y);
                         titleAdded = true;
                     }
 
                     pdf.addImage(imgData, "JPEG", margin, y, imgWidth, imgHeight);
-                    y += imgHeight + 20; // Augmenter l'espacement sous l'image
+                    y += imgHeight + 20;
 
                     resolve();
                 };
@@ -214,26 +194,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    return y + 10; // Ajouter de l'espace après les images
-}
-
+    return y + 10;
+  }
 
   function toDataURL(file) {
     return new Promise((resolve, reject) => {
-      if (typeof file === "string") {
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.src = file;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/png"));
-        };
-        img.onerror = () => reject("Impossible de charger l'image.");
-      } else if (file instanceof Blob) {
+      if (file instanceof Blob) {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
         reader.onerror = (e) => reject(e);
