@@ -1,221 +1,246 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const generatePDFBtn = document.getElementById("generatePDF");
-  const addValidationRowBtn = document.getElementById("addValidationRow");
-  const validationTableBody = document.querySelector("#validationTable tbody");
+  const addPhotoGroupBtn = document.getElementById("addPhotoGroup");
+  const photosContainer = document.getElementById("photosContainer");
 
-  // Ajouter une ligne dans le tableau Validation
-  addValidationRowBtn.addEventListener("click", () => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-          <td><input type="text" name="redacteurs[]" placeholder="Nom du rédacteur" /></td>
-          <td><input type="text" name="approbateurs[]" placeholder="Nom de l'approbateur" /></td>
-          <td><input type="text" name="delegue[]" placeholder="Nom du délégué" /></td>
-      `;
-    validationTableBody.appendChild(row);
+  addPhotoGroupBtn.addEventListener("click", () => {
+    const photoGroup = document.createElement("div");
+    photoGroup.className = "photoGroup";
+
+    photoGroup.innerHTML = `
+      <label>Ajouter des photos :</label>
+      <input type="file" class="photoInput" accept="image/*" multiple />
+      <label>Catégorie :</label>
+      <select class="photoCategory">
+        <option value="infosCommandes">Infos commandes</option>
+        <option value="photos">Photos</option>
+      </select>
+      <button type="button" class="removePhotoGroup">Supprimer ce groupe</button>
+    `;
+
+    photosContainer.appendChild(photoGroup);
+
+    photoGroup.querySelector(".removePhotoGroup").addEventListener("click", () => {
+      photosContainer.removeChild(photoGroup);
+    });
   });
 
   generatePDFBtn.addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
+    let y = 25;
+    const margin = 20;
+    const pageHeight = 297;
 
-    // Page 1 : En-tête et sections descriptives
-    pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF ajusté
-    pdf.setFillColor(0, 51, 153); // Couleur bleue pour la bannière
-    pdf.rect(0, 30, 210, 15, "F"); // Bannière bleue
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(16);
-    pdf.text("PV Mise En Service Technique", 105, 40, { align: "center" });
+    try {
+      const logoBase64 = await toDataURL("EDF.png").catch(() => {
+        console.warn("⚠️ Impossible de charger 'EDF.png'. Vérifiez le chemin du fichier.");
+        return null;
+      });
 
-    const title = document.getElementById("title").value;
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(12);
-    pdf.text(title, 20, 55);
+      if (logoBase64) {
+        pdf.addImage(logoBase64, "PNG", 10, 10, 30, 20);
+        y += 25;
+      }
 
-    // Nouvelles sections ajoutées
-    const documentAssocie = document.getElementById("documentAssocie").value;
-    pdf.setFontSize(12);
-    pdf.text("Document associé :", 20, 65);
-    pdf.setFontSize(10);
-    pdf.text(documentAssocie, 20, 70, { maxWidth: 170 });
+      pdf.setFontSize(18);
+      pdf.setTextColor("#003366");
+      pdf.text("PV Mise En Service Technique", 105, y, { align: "center" });
+      y += 20;
 
-    const animationMetier = document.getElementById("animationMetier").value;
-    pdf.setFontSize(12);
-    pdf.text("Animation métier :", 20, 85);
-    pdf.setFontSize(10);
-    pdf.text(animationMetier, 20, 90, { maxWidth: 170 });
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
 
-    const interlocuteurs = document.getElementById("interlocuteurs").value;
-    pdf.setFontSize(12);
-    pdf.text("Interlocuteurs :", 20, 105);
-    pdf.setFontSize(10);
-    pdf.text(interlocuteurs, 20, 110, { maxWidth: 170 });
+      const getValue = (id) => {
+        const element = document.getElementById(id);
+        return element ? element.value : "Non renseigné";
+      };
 
-    // Historique avec données réparties
-    const historique =
-      document.getElementById("historique").value ||
-      "Version 1, 13/10/2023, Création";
-    const historiqueData = historique.split(",").map((item) => item.trim());
-    pdf.autoTable({
-      startY: 120,
-      head: [["Version", "Date d'application", "Nature de la modification"]],
-      body: [historiqueData],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
+      y = addSection(pdf, "Informations Générales", y);
+      y = addText(pdf, `Titre : ${getValue("title")}`, y);
+      y = addText(pdf, `Responsable chantier : ${getValue("responsable")}`, y);
+      y = addText(pdf, `Entreprise : ${getValue("entreprise")}`, y);
+      y = addText(pdf, `Date début : ${getValue("startDate")}`, y);
+      y = addText(pdf, `Date fin : ${getValue("endDate")}`, y);
 
-    // Résumé
-    const summary =
-      document.getElementById("summary").value || "Aucun résumé fourni";
-    pdf.autoTable({
-      startY: pdf.lastAutoTable.finalY + 10,
-      head: [["Résumé"]],
-      body: [[summary]],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
+      y = addSection(pdf, "Historique", y);
+      y = addText(pdf, `Date d'application : ${getValue("historique")}`, y);
 
-    // Validation dynamique
-    const validationRows = Array.from(
-      validationTableBody.querySelectorAll("tr")
-    );
-    const validationData = validationRows.map((row) => {
-      const inputs = row.querySelectorAll("input");
-      return Array.from(inputs).map((input) => input.value.trim());
-    });
+      y = addSection(pdf, "Description du projet", y);
+      const summary = getValue("summary");
+      const descLines = pdf.splitTextToSize(summary, 170);
+      pdf.text(descLines, margin, y);
+      y += descLines.length * 7 + 15;
 
-    pdf.autoTable({
-      startY: pdf.lastAutoTable.finalY + 10,
-      head: [["Rédacteurs", "Approbateurs", "Délégué Réseaux et Patrimoine"]],
-      body: validationData,
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
+      const photoGroups = document.querySelectorAll(".photoGroup");
 
-    // Page 2 : Infos commande
-    pdf.addPage();
-    pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF
-    pdf.setFontSize(14);
-    pdf.setTextColor(0, 102, 0); // Couleur verte pour le titre
-    pdf.text("Infos commande :", 20, 30);
+      let infosCommandesPhotos = [];
+      let generalPhotos = [];
 
-    // Gestion des données
-    const photosInput = document.getElementById("photos");
-    const photoCategory = document.getElementById("photoCategory").value; // Catégorie sélectionnée
-    const photos = Array.from(photosInput.files);
+      for (const group of photoGroups) {
+        const filesInput = group.querySelector(".photoInput");
+        if (filesInput.files.length === 0) continue;
 
-    let yInfosCommandes = 100; // Position initiale pour Infos commandes
-    let yPhotos = 150; // Position initiale pour Photos
+        const category = group.querySelector(".photoCategory").value;
+        const photos = Array.from(filesInput.files);
 
-    if (photos.length > 0) {
-      // Parcours des photos ajoutées dans le formulaire
-      for (let i = 0; i < photos.length; i++) {
-        const imgData = await toDataURL(photos[i]);
-
-        if (photoCategory === "infosCommandes") {
-          // Ajouter les photos dans la zone Infos commandes
-          if (yInfosCommandes > 260) {
-            pdf.addPage();
-            yInfosCommandes = 40; // Réinitialiser la position sur une nouvelle page
-          }
-          pdf.addImage(imgData, "JPEG", 20, yInfosCommandes, 80, 60);
-          yInfosCommandes += 70; // Espacement entre les images
-        } else if (photoCategory === "photos") {
-          // Ajouter les photos dans la zone Photos
-          if (yPhotos > 260) {
-            pdf.addPage();
-            yPhotos = 40; // Réinitialiser la position sur une nouvelle page
-          }
-          pdf.addImage(imgData, "JPEG", 20, yPhotos, 80, 60);
-          yPhotos += 70; // Espacement entre les images
+        if (category === "infosCommandes") {
+          infosCommandesPhotos.push(...photos);
+        } else {
+          generalPhotos.push(...photos);
         }
       }
+
+      if (infosCommandesPhotos.length > 0) {
+        y = await addImagesWithTitle(pdf, "Infos commandes", infosCommandesPhotos, y);
+      }
+
+      if (generalPhotos.length > 0) {
+        y = await addImagesWithTitle(pdf, "Photos", generalPhotos, y);
+      }
+
+      pdf.save("pv_mise_en_service.pdf");
+    } catch (error) {
+      console.error("Erreur lors de la génération du PDF :", error);
+      alert("Une erreur est survenue lors de la génération du PDF.");
     }
+  });
 
-    // Tableau Infos commande
-    const responsable = document.getElementById("responsable").value;
-    const entreprise = document.getElementById("entreprise").value;
-    const stockage = document.getElementById("stockage").value;
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
-    const amount = document.getElementById("amount").value;
-    const eotp = document.getElementById("eotp").value || "Non spécifié";
-
-    let y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY : 40; // Initialise y après le dernier tableau ou à 40
-    pdf.autoTable({
-      startY: y + 10,
-      head: [["Responsable chantier", "Entreprise", "Lieu stockage dossier"]],
-      body: [[responsable, entreprise, stockage]],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
-
-    y = pdf.lastAutoTable.finalY + 10;
-
-    pdf.autoTable({
-      startY: y,
-      head: [["Début chantier", "Fin chantier", "Montant chantier", "EOTP"]],
-      body: [[startDate, endDate, amount ? `${amount}€` : "N/A", eotp]],
-      theme: "grid",
-      headStyles: { fillColor: [0, 51, 153] },
-    });
-
-    // Ajout du titre "Photos :" après les tableaux
-    y = pdf.lastAutoTable.finalY + 20; // Correction de la position
+  function addSection(pdf, title, y) {
+    pdf.setTextColor("#003366");
     pdf.setFontSize(14);
-    pdf.setTextColor(0, 102, 0);
-    pdf.text("Photos :", 20, y);
+    pdf.text(title, 20, y);
+    pdf.setTextColor(0, 0, 0);
+    pdf.line(20, y + 2, 190, y + 2);
+    return y + 15; // Augmenter l'espace après les titres
+  }
 
-    // Affichage des photos supplémentaires sous le titre
-    y += 10;
-    if (photos.length > 2) {
-      const imgData = await toDataURL(photos[2]);
-      pdf.addImage(imgData, "JPEG", 20, y, 80, 60);
-    }
+  function addText(pdf, text, y) {
+  pdf.setFontSize(12);
+  pdf.text(text, 20, y);
+  return y + 10; // Espacement un peu plus grand entre les textes
+  }
 
-    // Page 3 : Photos supplémentaires
-    if (photos.length > 3) {
-      pdf.addPage();
-      pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Logo EDF
-      pdf.setFontSize(16);
-      pdf.text("Photos :", 20, 30);
+  async function addImagesWithTitle(pdf, title, images, y) {
+    y = addSection(pdf, title, y);
 
-      y = 40;
+    const maxWidth = 130;
+    const maxHeight = 90;
+    const margin = 20;
+    const pageHeight = 297;
 
-      for (let i = 3; i < photos.length; i++) {
-        const imgData = await toDataURL(photos[i]);
+    for (const image of images) {
+      try {
+        const imgData = await toDataURL(image);
         const img = new Image();
         img.src = imgData;
 
-        const ratio = img.width / img.height;
-        let displayWidth = Math.min(190, img.width); // Largeur maximale
-        let displayHeight = displayWidth / ratio;
+        await new Promise((resolve) => {
+          img.onload = function () {
+            let imgWidth = img.width;
+            let imgHeight = img.height;
+            const scale = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+            imgWidth *= scale;
+            imgHeight *= scale;
 
-        if (displayHeight > 100) {
-          displayHeight = 100;
-          displayWidth = displayHeight * ratio;
-        }
+            // Vérifier si l'image peut rentrer sous le titre sans être trop éloignée
+            if (y + imgHeight > pageHeight - margin) {
+              pdf.addPage();
+              y = margin;
+              y = addSection(pdf, title, y); // Réinsérer le titre sur la nouvelle page
+            }
 
-        pdf.addImage(imgData, "JPEG", x, y, displayWidth, displayHeight);
-        y += displayHeight + 10;
+            pdf.addImage(imgData, "JPEG", margin, y, imgWidth, imgHeight);
+            y += imgHeight + 10;
 
-        if (y + displayHeight > 280) {
-          pdf.addPage();
-          pdf.addImage("EDF.png", "PNG", 10, 10, 25, 15); // Nouveau logo
-          y = 40;
-        }
+            resolve();
+          };
+        });
+      } catch (error) {
+        console.error("Erreur de conversion d'image :", error);
       }
     }
 
-    // Sauvegarder le PDF
-    pdf.save("pv_mise_en_service.pdf");
-  });
+    return y + 10;
+  }
 
-  // Convertir une image en DataURL
+  async function addImagesWithTitle(pdf, title, images, y) {
+    const maxWidth = 130;
+    const maxHeight = 90;
+    const margin = 20;
+    const pageHeight = 297;
+    let titleAdded = false;
+
+    for (const image of images) {
+        try {
+            const imgData = await toDataURL(image);
+            const img = new Image();
+            img.src = imgData;
+
+            await new Promise((resolve) => {
+                img.onload = function () {
+                    let imgWidth = img.width;
+                    let imgHeight = img.height;
+                    const scale = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+                    imgWidth *= scale;
+                    imgHeight *= scale;
+
+                    // Vérifier si l'image peut rester sur la même page
+                    if (y + imgHeight + 20 > pageHeight - margin) {
+                        pdf.addPage();
+                        y = margin + 10;
+
+                        // Ajouter le titre seulement si l'image passe à une nouvelle page
+                        if (!titleAdded) {
+                            y = addSection(pdf, title, y);
+                            titleAdded = true;
+                        }
+                    }
+
+                    // Ajouter le titre avant la première image du groupe uniquement
+                    if (!titleAdded) {
+                        y = addSection(pdf, title, y);
+                        titleAdded = true;
+                    }
+
+                    pdf.addImage(imgData, "JPEG", margin, y, imgWidth, imgHeight);
+                    y += imgHeight + 20; // Augmenter l'espacement sous l'image
+
+                    resolve();
+                };
+            });
+        } catch (error) {
+            console.error("Erreur de conversion d'image :", error);
+        }
+    }
+
+    return y + 10; // Ajouter de l'espace après les images
+}
+
+
   function toDataURL(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(file);
+    return new Promise((resolve, reject) => {
+      if (typeof file === "string") {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = file;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = () => reject("Impossible de charger l'image.");
+      } else if (file instanceof Blob) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsDataURL(file);
+      } else {
+        reject(new Error("Le fichier sélectionné n'est pas valide."));
+      }
     });
   }
 });

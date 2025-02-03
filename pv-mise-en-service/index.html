@@ -16,23 +16,10 @@
         <input type="text" id="title" placeholder="Titre du PV" required />
 
         <label for="responsable">Responsable chantier : *</label>
-        <input
-          type="text"
-          id="responsable"
-          placeholder="Ex: Stéphane"
-          required
-        />
+        <input type="text" id="responsable" placeholder="Ex: Stéphane" required />
 
         <label for="entreprise">Entreprise : *</label>
-        <input
-          type="text"
-          id="entreprise"
-          placeholder="Ex: Technilevage"
-          required
-        />
-
-        <label for="stockage">Lieu stockage dossier : *</label>
-        <input type="text" id="stockage" placeholder="Ex: SERVEUR" required />
+        <input type="text" id="entreprise" placeholder="Ex: Technilevage" required />
 
         <label for="startDate">Date début : *</label>
         <input type="date" id="startDate" required />
@@ -40,90 +27,26 @@
         <label for="endDate">Date fin : *</label>
         <input type="date" id="endDate" required />
 
-        <label for="amount">Montant (€) : *</label>
-        <input type="number" id="amount" placeholder="Ex: 5850" required />
+        <label for="summary">Description du projet :</label>
+        <textarea id="summary" rows="4"></textarea>
 
-        <label for="eotp">EOTP Chantier :</label>
-        <input type="text" id="eotp" placeholder="Ex: E736/CORAMO/A-VEHG" />
+        <h3>Historique</h3>
+        <label for="historique">Date d'application :</label>
+        <input type="date" id="historique" required />
 
-        <label for="summary">Résumé :</label>
-        <textarea
-          id="summary"
-          rows="4"
-          placeholder="Description du projet"
-        ></textarea>
-
-        <label for="historique">Historique :</label>
-        <textarea
-          id="historique"
-          rows="4"
-          placeholder="Ex: Version 1, Date d'application, Nature de modification"
-        ></textarea>
-
-        <label for="documentAssocie">Document associé :</label>
-        <textarea
-          id="documentAssocie"
-          rows="4"
-          placeholder="Ex: Note SEI PTE 34 Guide d’utilisation..."
-        ></textarea>
-
-        <label for="animationMetier">Animation métier :</label>
-        <textarea
-          id="animationMetier"
-          rows="4"
-          placeholder="Ex: Concession, Réseau et Patrimoine..."
-        ></textarea>
-
-        <label for="interlocuteurs">Interlocuteurs :</label>
-        <textarea
-          id="interlocuteurs"
-          rows="4"
-          placeholder="Ex: Frédéric MESCOFF"
-        ></textarea>
-
-        <h3>Validation</h3>
-        <table id="validationTable">
-          <thead>
-            <tr>
-              <th>Rédacteurs</th>
-              <th>Approbateurs</th>
-              <th>Délégué Réseaux et Patrimoine</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <input
-                  type="text"
-                  name="redacteurs[]"
-                  placeholder="Nom du rédacteur"
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  name="approbateurs[]"
-                  placeholder="Nom de l'approbateur"
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  name="delegue[]"
-                  placeholder="Nom du délégué"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <button type="button" id="addValidationRow">Ajouter une ligne</button>
-
-        <label for="photos">Photos :</label>
-        <input type="file" id="photos" accept="image/*" multiple />
-        <select id="photoCategory" name="photoCategory">
-          <option value="infosCommandes">Infos commandes</option>
-          <option value="photos">Photos</option>
-        </select>
+        <h3>Photos</h3>
+        <div id="photosContainer">
+          <div class="photoGroup">
+            <label>Ajouter des photos :</label>
+            <input type="file" class="photoInput" accept="image/*" multiple />
+            <label>Catégorie :</label>
+            <select class="photoCategory">
+              <option value="infosCommandes">Infos commandes</option>
+              <option value="photos">Photos</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" id="addPhotoGroup">Ajouter un groupe de photos</button>
 
         <button type="button" id="generatePDF">Générer PDF</button>
       </form>
