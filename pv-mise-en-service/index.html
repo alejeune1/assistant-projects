@@ -13,13 +13,13 @@
       <h1>PV Mise En Service</h1>
       <form id="pvForm">
         <label for="title">Titre : *</label>
-        <input type="text" id="title" required />
+        <input type="text" id="title" placeholder="Titre du PV" required />
 
         <label for="responsable">Responsable chantier : *</label>
-        <input type="text" id="responsable" required />
+        <input type="text" id="responsable" placeholder="Ex: Stéphane" required />
 
         <label for="entreprise">Entreprise : *</label>
-        <input type="text" id="entreprise" required />
+        <input type="text" id="entreprise" placeholder="Ex: Technilevage" required />
 
         <label for="startDate">Date début : *</label>
         <input type="date" id="startDate" required />
@@ -48,6 +48,17 @@
         </div>
         <button type="button" id="addPhotoGroup">Ajouter un groupe de photos</button>
         
+        <h3>Signature *</h3>
+
+        <label for="signataireNom">Nom du signataire : *</label>
+        <input type="text" id="signataireNom" placeholder="Nom du signataire" required />
+
+        <div class="signature-container">
+          <label>Signature :</label>
+          <canvas id="signatureCanvas" width="300" height="100" style="border:1px solid black;"></canvas>
+          <button type="button" id="clearSignature">Effacer</button>
+        </div>
+
         <button type="button" id="generatePDF">Générer PDF</button>        
       </form>
     </div>
